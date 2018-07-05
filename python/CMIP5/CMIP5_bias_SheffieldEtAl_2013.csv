@@ -1,0 +1,18 @@
+Model,Winter Precipitation Bias,Summer Precipitation Bias,Winter Temperature Bias,Summer Temperature Bias
+BCC-CSM1.1, 21.39, -20.74, -1.98, 0.54 
+CanESM2, -5.53, -39.23, 2.04, 4.11
+CCSM4, 10.24, 3.47, -0.53, 1.37
+CNRM-CM5, -1.58, -4.73, -1.95, -0.06
+CSIRO Mk3.6.0, 5.35, -29.14, -2.05, 2.97
+GFDL CM3, 27.41, 15.95, -0.03, -2.24
+GFDL-ESM2M, 14.70, 12.03, -0.84, -0.59
+GISS-E2-R, 25.18, 32.35, -1.21, -2.09
+HadCM3, 14.43, 1.16, -3.46, -0.74
+HadGEM2-ES, 4.26, -15.89, -2.98, 1.79
+INM-CM4.0, 25.43, -1.74, 0.26, -2.07
+IPSL-CM5A-LR, 12.38, -1.62, -1.14, -1.22
+MIRCO5, 7.94, 0.72, 0.65, 2.30
+MIROC-ESM, 8.73, 4.37, 1.74, 1.89
+MPI-ESM-LR, 14.27, 11.02, 0.30, -0.66
+MRI-CGCM3, 34.43, 16.85, -0.37, -1.77
+NorESM1-M, -6.86, 11.48, -1.60, -0.51
