@@ -1,0 +1,12 @@
+#!/bin/bash
+#PBS -k o
+#PBS -l nodes=1:ppn=1,walltime=20:00:00
+#PBS -M kevin.toombs@wsu.edu
+#PBS -m abe
+#PBS -N PY-TEST-2
+#PBS -j oe
+#PBS -d /home/ktoombs/torque_debug/
+#PBS -o /home/ktoombs/torque_output/
+module load python/3.6.1
+cd /home/ktoombs/
+python aqsgather.py
