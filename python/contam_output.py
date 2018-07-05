@@ -57,10 +57,8 @@ class Contam:
                     Written by  Von P. Walden, Washington State University
                                 7 October 2016
         """
-        import struct
         import numpy    as     np
         import pandas   as     pd
-        from   datetime import datetime, timedelta
         
         self.filename = filename
         self.fp = open(self.filename,'rb')
@@ -70,55 +68,44 @@ class Contam:
         #   (32-bit integers) to help assure that the results apply to the 
         #   project file currently in ContamW and to set the array sizes
         #   necessary to process the results.
-        self.header = {'version_number': struct.unpack('i', self.fp.read(4))[0],
-                       'nzone'         : struct.unpack('i', self.fp.read(4))[0],
-                       'npath'         : struct.unpack('i', self.fp.read(4))[0],
-                       'nctm'          : struct.unpack('i', self.fp.read(4))[0],
-                       'njct'          : struct.unpack('i', self.fp.read(4))[0],
-                       'ndct'          : struct.unpack('i', self.fp.read(4))[0],
-                       'time_list'     : struct.unpack('i', self.fp.read(4))[0],
-                       'date_0'        : struct.unpack('i', self.fp.read(4))[0],
-                       'time_0'        : struct.unpack('i', self.fp.read(4))[0],
-                       'date_1'        : struct.unpack('i', self.fp.read(4))[0],
-                       'time_1'        : struct.unpack('i', self.fp.read(4))[0],
-                       'pfsave'        : struct.unpack('i', self.fp.read(4))[0],
-                       'zfsave'        : struct.unpack('i', self.fp.read(4))[0],
-                       'zcsave'        : struct.unpack('i', self.fp.read(4))[0],
-                       'nafnd'         : struct.unpack('i', self.fp.read(4))[0],
-                       'nccnd'         : struct.unpack('i', self.fp.read(4))[0],
-                       'nafpt'         : struct.unpack('i', self.fp.read(4))[0]}
+        self.header = {'version_number': np.fromfile(self.fp,'i4',1)[0],
+                       'nzone'         : np.fromfile(self.fp,'i4',1)[0],
+                       'npath'         : np.fromfile(self.fp,'i4',1)[0],
+                       'nctm'          : np.fromfile(self.fp,'i4',1)[0],
+                       'njct'          : np.fromfile(self.fp,'i4',1)[0],
+                       'ndct'          : np.fromfile(self.fp,'i4',1)[0],
+                       'time_list'     : np.fromfile(self.fp,'i4',1)[0],
+                       'date_0'        : np.fromfile(self.fp,'i4',1)[0],
+                       'time_0'        : np.fromfile(self.fp,'i4',1)[0],
+                       'date_1'        : np.fromfile(self.fp,'i4',1)[0],
+                       'time_1'        : np.fromfile(self.fp,'i4',1)[0],
+                       'pfsave'        : np.fromfile(self.fp,'i4',1)[0],
+                       'zfsave'        : np.fromfile(self.fp,'i4',1)[0],
+                       'zcsave'        : np.fromfile(self.fp,'i4',1)[0],
+                       'nafnd'         : np.fromfile(self.fp,'i4',1)[0],
+                       'nccnd'         : np.fromfile(self.fp,'i4',1)[0],
+                       'nafpt'         : np.fromfile(self.fp,'i4',1)[0]}
         
-        self.header['beginning_time']    = datetime.strptime(str(self.header['date_0']),'%j') + timedelta(seconds=self.header['time_0'])
-        self.header['ending_time']       = datetime.strptime(str(self.header['date_1']),'%j') + timedelta(seconds=self.header['time_1'])
-        self.header['time_delta']        = timedelta(seconds=self.header['time_list'])
+        # Determine time scale of contam simulation
+        self.header['beginning_time']    = pd.datetime.strptime(str(self.header['date_0']),'%j') + pd.to_timedelta(self.header['time_0'],'s')
+        self.header['ending_time']       = pd.datetime.strptime(str(self.header['date_1']),'%j') + pd.to_timedelta(self.header['time_1'],'s')
+        self.header['time_delta']        = pd.to_timedelta(self.header['time_list'],'s')
         self.header['numberOfTimeSteps'] = int((self.header['ending_time']-self.header['beginning_time']).total_seconds() / self.header['time_delta'].total_seconds()) 
         
         # This is followed by _nafnd lines of airflow node cross-reference data:
-        typ = []
-        for node in range(self.header['nafnd']): typ.append(struct.unpack('i', self.fp.read(4))[0])
-        nr = []
-        for node in range(self.header['nafnd']): nr.append(struct.unpack('i',  self.fp.read(4))[0])            
         self.airflow_node            = {}
-        self.airflow_node['typ']     = np.array(typ)
-        self.airflow_node['nr']      = np.array(nr)
+        self.airflow_node['typ']     = np.fromfile(self.fp,'i4',self.header['nafnd'])
+        self.airflow_node['nr']      = np.fromfile(self.fp,'i4',self.header['nafnd'])
         
         # The next _nafnd lines give the contaminant node cross-reference data:
-        typ = []
-        for node in range(self.header['nafnd']): typ.append(struct.unpack('i', self.fp.read(4))[0])
-        nr = []
-        for node in range(self.header['nafnd']): nr.append(struct.unpack('i',  self.fp.read(4))[0])            
         self.contaminant_node        = {}
-        self.contaminant_node['typ'] = np.array(typ)
-        self.contaminant_node['nr']  = np.array(nr) 
+        self.contaminant_node['typ'] = np.fromfile(self.fp,'i4',self.header['nafnd'])
+        self.contaminant_node['nr']  = np.fromfile(self.fp,'i4',self.header['nafnd'])
         
         # The next _nafpt lines give the airflow path cross-reference data:
-        typ = []
-        for node in range(self.header['nafpt']): typ.append(struct.unpack('i', self.fp.read(4))[0])
-        nr = []
-        for node in range(self.header['nafpt']): nr.append(struct.unpack('i',  self.fp.read(4))[0])            
         self.airflow_path            = {}
-        self.airflow_path['typ']     = np.array(typ)
-        self.airflow_path['nr']      = np.array(nr) 
+        self.airflow_path['typ']     = np.fromfile(self.fp,'i4',self.header['nafpt'])
+        self.airflow_path['nr']      = np.fromfile(self.fp,'i4',self.header['nafpt'])
         
         # Create a time index to use for creating pandas DataFrames.
         self.index                   = pd.date_range(self.header['beginning_time'], periods=self.header['numberOfTimeSteps'], freq=self.header['time_delta'])
@@ -126,415 +113,155 @@ class Contam:
         # Create variable that designates time steps where the day changes.
         self.dayChange               = np.where(np.diff(self.index.day))[0] + 1
 
-        # Create variable that documents the byte position at the end of the header.
-        self.startOfData             = self.fp.tell()
-        
         # Determine the size (in bytes) of the sections of data in time step.
         self.ambientSize             = (2*2) + (5*4) + (self.header['nctm']*4)
         self.airflowPathSize         = (4*4*self.header['nafpt'])
         self.airflowNodeSize         = (4*4*(self.header['nafnd']-1))
         self.contaminantNodeSize     = ((1*4) + self.header['nctm']*4)*(self.header['nccnd']-1)
+        self.dataRecordSize          = self.ambientSize + self.airflowPathSize + self.airflowNodeSize + self.contaminantNodeSize
 
+        # Create variable that documents the byte position at the end of the header.
+        self.startOfData             = self.fp.tell()
+        
         return
     
     def readAmbient(self):
-        """Method to read the ambient meteorology and contaminant data at
+        """Function to read the ambient meteorology and contaminant data at
             each time step in the CONTAM simulation (SIM) file.
         
         Written by  Von P. Walden, Washington State University
-                    7 October 2016
+                     7 October 2016
+                    26 March   2018 - Made vast improvements to speed by reading
+                                        blocks of data using np.fromfile instead
+                                        of decoding each value; duh...
         """
-        import struct
+        import numpy  as np
         import pandas as pd
         
-        ambient         = pd.DataFrame(columns=['Tambt','P','Ws','Wd']+['Ctm'+str(n+1) for n in range(self.header['nctm'])],index=self.index)
+        # Reset the file pointer at the beginning of the data.
+        self.fp.seek(self.startOfData)
+        
+        # Read the ambient meteorology and contaminant data.
+        data = []
         for timeStep in range(self.header['numberOfTimeSteps']):
             if any(timeStep==self.dayChange):
-                # Reads summary data for the day and does NOT store it.
-                struct.unpack('h', self.fp.read(2))[0]     # dummy dayofy
-                struct.unpack('h', self.fp.read(2))[0]     # dummy daytyp
-                # Read Ambient data
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Tamax
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Tamin
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Pavg
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Wsmax
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Wsavg
-                for n in range(self.header['nctm']):
-                    struct.unpack("f", self.fp.read(4))[0] # dummy cc data
-                self.fp.seek(self.fp.tell() + self.airflowPathSize + self.airflowNodeSize + self.contaminantNodeSize)
-                # Reads summary data for the day and does NOT store it.
-                struct.unpack('h', self.fp.read(2))[0]     # dummy dayofy
-                struct.unpack('h', self.fp.read(2))[0]     # dummy daytyp
-                # Read Ambient data
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Tamax
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Tamin
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Pavg
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Wsmax
-                struct.unpack('f', self.fp.read(4))[0]     # dummy Wsavg
-                for n in range(self.header['nctm']):
-                    struct.unpack("f", self.fp.read(4))[0] # dummy cc data
-                self.fp.seek(self.fp.tell() + self.airflowPathSize + self.airflowNodeSize + self.contaminantNodeSize)
-                # Then reads next normal measurement and stores it.
-                struct.unpack('h', self.fp.read(2))[0]     # dummy dayofy
-                struct.unpack('h', self.fp.read(2))[0]     # dummy daytyp
-                struct.unpack('i', self.fp.read(4))[0]     # dummy sim_time
-                #cur_time = datetime.strptime(str(dayofy),'%j') + timedelta(seconds=sim_time)       
-                # Read Ambient data
-                ambient.Tambt.iloc[timeStep] = struct.unpack('f', self.fp.read(4))[0]
-                ambient.P.iloc[timeStep]     = struct.unpack('f', self.fp.read(4))[0]
-                ambient.Ws.iloc[timeStep]    = struct.unpack('f', self.fp.read(4))[0]
-                ambient.Wd.iloc[timeStep]    = struct.unpack('f', self.fp.read(4))[0]
-                for n in range(self.header['nctm']):
-                    exec('ambient.Ctm'+str(n+1)+'.iloc[timeStep] = struct.unpack("f", self.fp.read(4))[0]')
-            else:
-                struct.unpack('h', self.fp.read(2))[0]     # dummy dayofy
-                struct.unpack('h', self.fp.read(2))[0]     # dummy daytyp
-                struct.unpack('i', self.fp.read(4))[0]     # dummy sim_time
-                #cur_time = datetime.strptime(str(dayofy),'%j') + timedelta(seconds=sim_time)       
-                # Read Ambient data
-                ambient.Tambt.iloc[timeStep]         = struct.unpack('f', self.fp.read(4))[0]
-                ambient.P.iloc[timeStep]             = struct.unpack('f', self.fp.read(4))[0]
-                ambient.Ws.iloc[timeStep]            = struct.unpack('f', self.fp.read(4))[0]
-                ambient.Wd.iloc[timeStep]            = struct.unpack('f', self.fp.read(4))[0]
-                for n in range(self.header['nctm']):
-                    exec('ambient.Ctm'+str(n+1)+'.iloc[timeStep] = struct.unpack("f", self.fp.read(4))[0]') 
-                
-            self.fp.seek(self.fp.tell() + self.airflowPathSize + self.airflowNodeSize + self.contaminantNodeSize)
+                # Skips two full data records; 24th hour of day + Summary data
+                self.fp.seek(2*self.dataRecordSize,1)    # Skips two full data records; 24th hour of day + Summary data
+            # Skips 8 bytes for date/time info.
+            self.fp.seek(8,1)
+            # Read one row of Ambient data
+            data.append(np.fromfile(self.fp,'f4',4+self.header['nctm']))                        
+            self.fp.seek(self.airflowPathSize + self.airflowNodeSize + self.contaminantNodeSize,1)
         
-        return(ambient)
+        # Places the data into a pandas dataframe, which is returned.
+        return(pd.DataFrame(data=data, columns=['Tambt','P','Ws','Wd']+['Ctm'+str(n+1) for n in range(self.header['nctm'])], index=self.index))
     
     def readAirflowPaths(self):
-        """Method to read the airflow path data at
+        """Function to read the airflow path data at
             each time step in the CONTAM simulation (SIM) file.
         
         Written by  Von P. Walden, Washington State University
                     28 October 2016
+                    26 March   2018 - Made vast improvements to speed by reading
+                                        blocks of data using np.fromfile instead
+                                        of decoding each value; duh...
         """
-        import struct
-        import pandas as pd
         import numpy  as np
+        import pandas as pd
         
         # Reset the file pointer at the beginning of the data.
         self.fp.seek(self.startOfData)
         
-        airflowPaths = pd.DataFrame(columns=['dP','Flow0','Flow1'],index=self.index)
+        # Read the ambient meteorology and contaminant data.
+        dP    = []
+        Flow0 = []
+        Flow1 = []
         for timeStep in range(self.header['numberOfTimeSteps']):
             if any(timeStep==self.dayChange):
-                #.....................................................................
-                # SKIPS airflow path data.
-                # ....First skip 
-                self.fp.seek(self.fp.tell() + self.ambientSize)
-                # Reads data for the time step and does NOT store it.
-                for n in range(self.header['nafpt']):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy pressure drop
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy primary flow value
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy alternate flow value
-                # Skips to next time step.
-                self.fp.seek(self.fp.tell() + self.airflowNodeSize + self.contaminantNodeSize)
-                # ....Second skip 
-                self.fp.seek(self.fp.tell() + self.ambientSize)
-                # Reads data for the time step and does NOT store it.
-                for n in range(self.header['nafpt']):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy pressure drop
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy primary flow value
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy alternate flow value
-                # Skips to next time step.
-                self.fp.seek(self.fp.tell() + self.airflowNodeSize + self.contaminantNodeSize)
-                #.....................................................................
-                # READS airflow path data.
-                # Skips ambient data.
-                self.fp.seek(self.fp.tell() + self.ambientSize)
-                # Reads data for the time step and does NOT store it.
-                dP    = []
-                Flow0 = []
-                Flow1 = []
-                for n in range(self.header['nafpt']):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    dP.append(struct.unpack('f', self.fp.read(4))[0])
-                    Flow0.append(struct.unpack('f', self.fp.read(4))[0])
-                    Flow1.append(struct.unpack('f', self.fp.read(4))[0])
-                airflowPaths['dP'].iloc[timeStep]    = np.array(dP)
-                airflowPaths['Flow0'].iloc[timeStep] = np.array(Flow0)
-                airflowPaths['Flow1'].iloc[timeStep] = np.array(Flow1)
-            else:
-                # READS airflow path data.
-                # Skips ambient data.
-                self.fp.seek(self.fp.tell() + self.ambientSize)
-                # Reads data for the time step and does NOT store it.
-                dP    = []
-                Flow0 = []
-                Flow1 = []
-                for n in range(self.header['nafpt']):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    dP.append(struct.unpack('f', self.fp.read(4))[0])
-                    Flow0.append(struct.unpack('f', self.fp.read(4))[0])
-                    Flow1.append(struct.unpack('f', self.fp.read(4))[0])
-                airflowPaths['dP'].iloc[timeStep]    = np.array(dP)
-                airflowPaths['Flow0'].iloc[timeStep] = np.array(Flow0)
-                airflowPaths['Flow1'].iloc[timeStep] = np.array(Flow1)
-
-            # Skips to next time step.
-            self.fp.seek(self.fp.tell() + self.airflowNodeSize + self.contaminantNodeSize)
+                # Skips two full data records; 24th hour of day + Summary data
+                self.fp.seek(2*self.dataRecordSize,1)    
+            # Skips ambient data record.
+            self.fp.seek(self.ambientSize,1)
+            # Extract rows of data for fp#, dP, Flow0, and Flow1.
+            temp = np.fromfile(self.fp,'f4',4*self.header['nafpt']).reshape(self.header['nafpt'],4)
+            dP.append(temp[:,1])
+            Flow0.append(temp[:,2])
+            Flow1.append(temp[:,3])
+            self.fp.seek(self.airflowNodeSize + self.contaminantNodeSize,1)
         
-        return(airflowPaths)
+        # Places the data into a Python dictionary that contains pandas dataframes.
+        return({'dP':    pd.DataFrame(data=dP,   columns=['afpt'+str(j+1) for j in range(self.header['nafpt'])],index=self.index), 
+                'Flow0': pd.DataFrame(data=Flow0,columns=['afpt'+str(j+1) for j in range(self.header['nafpt'])],index=self.index), 
+                'Flow1': pd.DataFrame(data=Flow1,columns=['afpt'+str(j+1) for j in range(self.header['nafpt'])],index=self.index)})
     
     def readAirflowNodes(self):
-        """Method to read the airflow node data at
+        """Function to read the airflow node data at
             each time step in the CONTAM simulation (SIM) file.
         
         Written by  Von P. Walden, Washington State University
                     28 October 2016
+                    26 March   2018 - Made vast improvements to speed by reading
+                                        blocks of data using np.fromfile instead
+                                        of decoding each value; duh...
         """
-        import struct
-        import pandas as pd
         import numpy  as np
+        import pandas as pd
         
         # Reset the file pointer at the beginning of the data.
         self.fp.seek(self.startOfData)
         
-        airflowNodes = pd.DataFrame(columns=['T','P','D'],index=self.index)
+        T = []
+        P = []
+        D = []
         for timeStep in range(self.header['numberOfTimeSteps']):
             if any(timeStep==self.dayChange):
-                #.....................................................................
-                # SKIPS airflow node data.
-                # ....First skip 
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize)
-                # Reads data for the time step and does NOT store it.
-                for n in range(self.header['nafnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy temperature
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy reference pressure
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy air density
-                # Skips to next time step.
-                self.fp.seek(self.fp.tell() + self.contaminantNodeSize)
-                # ....Second skip 
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize)
-                # Reads data for the time step and does NOT store it.
-                for n in range(self.header['nafnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy temperature
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy reference pressure 
-                    struct.unpack('f', self.fp.read(4))[0]     # dummy air density
-                # Skips to next time step.
-                self.fp.seek(self.fp.tell() + self.contaminantNodeSize)
-                #.....................................................................
-                # READS airflow node data.
-                # Skips ambient and airflow path data.
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize)
-                # Reads data for the time step and does NOT store it.
-                T = []
-                P = []
-                D = []
-                for n in range(self.header['nafnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    T.append(struct.unpack('f', self.fp.read(4))[0])
-                    P.append(struct.unpack('f', self.fp.read(4))[0])
-                    D.append(struct.unpack('f', self.fp.read(4))[0])
-                airflowNodes['T'].iloc[timeStep] = np.array(T)
-                airflowNodes['P'].iloc[timeStep] = np.array(P)
-                airflowNodes['D'].iloc[timeStep] = np.array(D)
-            else:
-                # READS airflow node data.
-                # Skips ambient and airflow path data.
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize)
-                # Reads data for the time step and does NOT store it.
-                T = []
-                P = []
-                D = []
-                for n in range(self.header['nafnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    T.append(struct.unpack('f', self.fp.read(4))[0])
-                    P.append(struct.unpack('f', self.fp.read(4))[0])
-                    D.append(struct.unpack('f', self.fp.read(4))[0])
-                airflowNodes['T'].iloc[timeStep] = np.array(T)
-                airflowNodes['P'].iloc[timeStep] = np.array(P)
-                airflowNodes['D'].iloc[timeStep] = np.array(D)
+                # Skips two full data records; 24th hour of day + Summary data
+                self.fp.seek(2*self.dataRecordSize,1)    
+            # Skips ambient and airflow path records.
+            self.fp.seek(self.ambientSize+self.airflowPathSize,1)
+            # Extract rows of data for node#, T, P, and D.
+            temp = np.fromfile(self.fp,'f4',4*(self.header['nafnd']-1)).reshape((self.header['nafnd']-1),4)
+            T.append(temp[:,1])
+            P.append(temp[:,2])
+            D.append(temp[:,3])
+            self.fp.seek(self.contaminantNodeSize,1)
 
-            # Skips to next time step.
-            self.fp.seek(self.fp.tell() + self.contaminantNodeSize)
-        
-        return(airflowNodes)
+        # Places the data into a pandas dataframe, which is returned.
+        return({'T': pd.DataFrame(data=T,columns=['afnd'+str(j+1) for j in range(self.header['nafnd']-1)],index=self.index), 
+                'P': pd.DataFrame(data=P,columns=['afnd'+str(j+1) for j in range(self.header['nafnd']-1)],index=self.index), 
+                'D': pd.DataFrame(data=D,columns=['afnd'+str(j+1) for j in range(self.header['nafnd']-1)],index=self.index)})
     
     def readContaminantNodes(self):
-        """Method to read the contaminant node data at
+        """Function to read the contaminant node data at
             each time step in the CONTAM simulation (SIM) file.
         
         Written by  Von P. Walden, Washington State University
-                    26 October 2016
+                    28 October 2016
+                    26 March   2018 - Made vast improvements to speed by reading
+                                        blocks of data using np.fromfile instead
+                                        of decoding each value; duh...
         """
-        import struct
-        import pandas as pd
         import numpy  as np
+        import pandas as pd
         
         # Reset the file pointer at the beginning of the data.
         self.fp.seek(self.startOfData)
         
-        contaminantNodes = pd.DataFrame(columns=['Cnd'+str(n+1) for n in range(self.header['nccnd']-1)],index=self.index)
+        for ctm in range(self.header['nctm']): exec('ctm'+str(ctm+1)+' = []')
         for timeStep in range(self.header['numberOfTimeSteps']):
             if any(timeStep==self.dayChange):
-                #.....................................................................
-                # SKIPS contaminant node data.
-                # ....First skip 
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize + self.airflowNodeSize)
-                # Reads data for the time step and does NOT store it.
-                for m in range(self.header['nccnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    for n in range(self.header['nctm']):
-                        struct.unpack("f", self.fp.read(4))[0] # dummy cc data
-                # Skips to next time step.
-                #self.fp.seek(self.fp.tell() + self.contaminantNodeSize)
-                # ....Second skip 
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize + self.airflowNodeSize)
-                # Reads data for the time step and does NOT store it.
-                for m in range(self.header['nccnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    for n in range(self.header['nctm']):
-                        struct.unpack("f", self.fp.read(4))[0] # dummy cc data
-                # Skips to next time step.
-                #self.fp.seek(self.fp.tell() + self.contaminantNodeSize)
-                #.....................................................................
-                # READS contaminant node data.
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize + self.airflowNodeSize)
-                # Reads data for the time step and does NOT store it.
-                for m in range(self.header['nccnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    Cnd = []
-                    for n in range(self.header['nctm']):
-                        Cnd.append(struct.unpack("f", self.fp.read(4))[0])
-                    exec('contaminantNodes.Cnd'+str(m+1)+'.iloc[timeStep] = np.array(Cnd)') 
-            else:
-                # READS airflow path data.
-                # Skips ambient data.
-                self.fp.seek(self.fp.tell() + self.ambientSize + self.airflowPathSize + self.airflowNodeSize)
-                # Reads data for the time step and does NOT store it.
-                for m in range(self.header['nccnd']-1):
-                    struct.unpack('i', self.fp.read(4))[0]     # dummy path number
-                    Cnd = []
-                    for n in range(self.header['nctm']):
-                        Cnd.append(struct.unpack("f", self.fp.read(4))[0])
-                    exec('contaminantNodes.Cnd'+str(m+1)+'.iloc[timeStep] = np.array(Cnd)') 
+                # Skips two full data records; 24th hour of day + Summary data
+                self.fp.seek(2*self.dataRecordSize,1)    
+            # Skips ambient, airflow path, and airflow node data records.
+            self.fp.seek(self.ambientSize+self.airflowPathSize+self.airflowNodeSize,1)
+            # Extract contaminant data for each contaminant node.
+            temp = np.fromfile(self.fp,'f4',(1+self.header['nctm'])*(self.header['nccnd']-1)).reshape((self.header['nccnd']-1),1+self.header['nctm'])
+            for ctm in range(self.header['nctm']):
+                exec('ctm'+str(ctm+1)+'.append(temp[:,ctm+1])')
+        # Create a dictionary of pandas dataframes.
+        contaminants = {}
+        for ctm in range(self.header['nctm']):    
+            exec("ctm" + str(ctm+1) + " = pd.DataFrame(data=ctm" + str(ctm+1) + ",columns=['Cnd'+str(cnd+1) for cnd in range(self.header['nccnd']-1)], index=self.index)")
+            exec("contaminants['ctm" + str(ctm+1) + "'] = ctm" + str(ctm+1))
 
-            # Skips to next time step.
-            #self.fp.seek(self.fp.tell() + self.contaminantNodeSize)
-        
-        return(contaminantNodes)
-
-        
-class HPC:
-    """This class defines methods (functions) for running CONTAM project files
-    (PRJ files) on the WSU Linux cluster (aeolus). By executing CONTAM on the
-    cluster, simulation (SIM) files are created. CONTAM is a computer program
-    for analyzing air quality and ventilation in indoor environments.
-           
-    Information on CONTAM can can be found at: 
-        https://www.nist.gov/services-resources/software/contam.
-        
-        Example usage:
-            # Initialize and read the "Ambient" meteorology and contaminant data.
-            import contam
-            prjDirectory = '/home/lima/IAQ/TestBatch/Homes/'
-            hpc          = contam.HPC(prjDirectory,'amd')
-            hpc.submitPrjToHPC()
-    """
-    def __init__(self, prjDirectory, hpcType):
-        """Initializes the HPC processing object with the desired directory
-        that contains the CONTAM project (PRJ) files to run on the cluster. 
-        
-                    Inputs:
-                        prjDirectory - directory that contains the desired CONTAM
-                                        PRJ files to run.
-                        hpcType - either 'amd' or 'intel'
-                                                
-                    Written by  Von P. Walden, Washington State University
-                                31 October 2016
-        """
-        self.prjDirectory     = prjDirectory
-        if(self.prjDirectory[-1] != '/'): self.prjDirectory = self.prjDirectory + '/'
-       	self.scriptsDirectory =	self.prjDirectory + 'scripts/'
-       	self.logsDirectory    = self.prjDirectory + 'logs/'
-        self.hpcType          = hpcType
-        self.email            = 'nathan.lima@wsu.edu'
-        self.execDirectory    = '/home/lima/contam/'
-        return
-    
-    def submitPrjToHPC(self):
-        
-        def qsubScript(prjID):
-            """This function simply creates qsub scripts for each PRJ file.
-            
-            !!! THIS SCRIPT NEEDS TO BE CHANGED FOR EACH USER !!!
-            
-                    Inputs:
-                        hpcType - either 'amd' or 'intel'
-                        
-                    Written by  Von P. Walden, Washington State University
-                                31 October 2016    
-            """
-            
-            # Write the script for the cluster.
-            f = open(self.scriptsDirectory+prjID+'.sh','w')
-            f.write('#!/bin/bash\n')
-            f.write('#PBS -k o\n')
-            f.write('#PBS -l nodes=1:'+self.hpcType+':ppn=1,walltime=00:15:00\n')
-            f.write('#PBS -M '+self.email+'\n')
-            f.write('#PBS -m abe\n')
-            f.write('#PBS -N '+prjID+'\n')
-            f.write('#PBS -j oe\n')
-            f.write('#PBS -d '+self.logsDirectory+'\n')
-            f.write('#PBS -o '+self.scriptsDirectory+'\n')
-            f.write('date\n')
-            f.write(self.execDirectory+'contam-x-3.2-gcc.exe '+self.prjDirectory+prjID+'.prj\n')
-            f.write('date\n')
-            f.close()
-            return
-        
-        def qsubComplete(ids):
-            """This function monitors the submitted jobs until they are all 
-                completed.
-                
-                    Inputs:
-                        ids - these are the identification numbers for the 
-                                submitted jobs on the cluster.
-                    
-                    Written by  Von P. Walden, Washington State University
-                                31 October 2016    
-            """
-            from subprocess import check_output
-            from time import sleep
-            
-            l = 42    # position of status byte in qstat string, relative to prj id.
-            while True:
-                status = []
-                qstat_out = check_output(['qstat']).decode('utf-8')
-                for id in ids:
-                    b = qstat_out.rfind(id)
-                    if b == -1: 
-                        continue
-                    else:
-                        status.append(qstat_out[b+l])   # Stores status byte
-                print(status)
-                if ('Q' in status or 'R' in status):    # Checks is processes are either queued or running.
-                    print('Jobs are still running... Try again in 10 seconds.')
-                    sleep(10)
-                else:
-                    break
-            return
-        
-        from glob import glob
-        from subprocess import check_output
-
-        # Submit the desired jobs to the cluster; one for each PRJ file.
-        ids   = []
-        prjFiles = glob(self.prjDirectory+'*.prj')
-        for f in prjFiles:
-            prjID  = f.split('/')[-1].split('.')[0]
-            print('Submitting reprocessing job: ' + prjID)
-            qsubScript(prjID) 
-            idstr  = check_output(['qsub', self.scriptsDirectory+prjID+'.sh'])
-            ids.append(prjID)
-        print(ids)
-        qsubComplete(ids)
-        return
-
+        return(contaminants)
