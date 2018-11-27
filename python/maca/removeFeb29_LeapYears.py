@@ -1,7 +1,10 @@
 from glob import glob
 import pandas as pd
 
-d = '/Users/vonw/data/maca/'
+# For sila
+#d = '/Users/vonw/data/maca/'
+# For gaia
+d = '/mnt/data/lima/iaq/maca'
 files = glob(d+'*.csv')
 
 for f in files:
