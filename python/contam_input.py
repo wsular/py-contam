@@ -202,6 +202,8 @@ def readMACA(city, year, rcp, model):
     import numpy  as np
     import pytz
     import ephem
+    import sys
+    from socket import gethostname
     
     def solar_times(city, date):
         # Sets up the Observer using the city's lat/lon.
@@ -222,13 +224,22 @@ def readMACA(city, year, rcp, model):
         return local_sunrise, local_noon, local_sunset
     
     # Read in data files depending on year and RCP.
-    directory = '/Volumes/vonw/data/iaq/maca/'
+    hostname = gethostname()
+    if hostname.find('petb227a') >= 0:    # This is the hostname for gaia.
+        directory = '/mnt/data/lima/iaq/maca/'
+    elif hostname.find('sila') >= 0:
+        directory = '/Volumes/vonw/data/iaq/maca/'
+    else:
+        print('Not a valid computer for access to MACA data. Try again...')
+        sys.exit()
     if ((year>=2010) and (year<=2020)):
         yearstr = '_2009_2020.csv'
     elif ((year>=2030) and (year<=2040)):
         yearstr = '_2029_2040.csv'
     elif ((year>=2044) and (year<=2056)):
         yearstr = '_2044_2056.csv'
+    elif ((year>=2090) and (year<=2098)):
+        yearstr = '_2089_2099.csv'
     else:
         print('Incorrect year. Try again...')
         return
