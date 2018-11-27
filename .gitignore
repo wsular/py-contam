@@ -1,0 +1,4 @@
+*.pyc
+
+# Ignore all files in graphics directory
+graphics/
