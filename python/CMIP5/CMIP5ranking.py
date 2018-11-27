@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 #%%
-cmip5 = pd.read_csv('/Users/vonw/work/projects/iaq/analysis/maca/CMIP5_bias_SheffieldEtAl_2013.csv')
+cmip5 = pd.read_csv('/Users/vonw/work/software/iaq/py-contam/python/CMIP5/CMIP5_bias_SheffieldEtAl_2013.csv')
 
 plt.figure()
 plt.plot(cmip5.index+1,cmip5['Winter Precipitation Bias'],'o')
