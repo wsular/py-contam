@@ -229,6 +229,8 @@ def readMACA(city, year, rcp, model):
         yearstr = '_2029_2040.csv'
     elif ((year>=2044) and (year<=2056)):
         yearstr = '_2044_2056.csv'
+    elif ((year>=2090) and (year<=2098)):
+        yearstr = '_2089_2099.csv'
     else:
         print('Incorrect year. Try again...')
         return
