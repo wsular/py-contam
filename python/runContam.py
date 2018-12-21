@@ -7,6 +7,7 @@ Created on Fri Dec 15 13:45:00 2018
 import contam_output
 import os
 import subprocess
+from shutil import copy2
 import numpy  as np
 import pandas as pd
 from glob import glob
@@ -14,15 +15,15 @@ from glob import glob
 ################################## USER INPUT ###############################
 
 # Select a directory for your CONTAM simulations
-output = 'testRun1'
+output = 'VonTest'
 
 # Indoor air temperature in F; '66', '70', or '74'
 #    Must be a string
-indoorAirTemp    = '70'   
+indoorAirTemp    = '70'
 
 # Representative Concentration Pathway (RCP); 4.5 or 8.5
-#    Must be an integer
-rcps   = (4.5, 8.5)
+#    Must be a floating-point number
+rcps = (4.5, 8.5)
 
 # U.S. cities from the following list:
 #    'Atlanta', 'Boston', 'Burmingham', 'Buffalo', 'Chicago', 'Cincinatti', 
@@ -31,7 +32,7 @@ rcps   = (4.5, 8.5)
 #
 #    Note: if only one city is chosen, then make it a list (['Chicago']), not a string.
 #
-cities = ('Dallas', 'Denver', 'Phoenix', 'Washington')
+cities = (['Washington'])
 
 # House type; 'AH-1', DH-1', 'DH-3', 'House-5', 'MH-1'
 #
@@ -44,7 +45,7 @@ nodes  = ('Cnd8', 'Cnd5', 'Cnd6')         # Contaminant node in each house to ex
 #    (2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 
 #     2047, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
 #     2090, 2091, 2092, 2093, 2094, 2095, 2096, 2097, 2098)
-years = (2010, 2011, 2012)
+years = (2010, 2011)
 
 # CMIP5 climate change models from the following list:
 #    'CCSM4', 'CNRM-CM5', 'GFDL-ESM2M', 'HadGEM2-ES365', 
@@ -62,6 +63,9 @@ if not os.path.exists(outdir):
 else:
     print('The desired output directory ALREADY EXISTS! Try again...')
     quit()
+
+# Copy this file, runContam.py,	to the output directory	for documentation.
+copy2('/mnt/data/lima/iaq/cmaq/runContam.py', outdir);
 
 # Sets directories that contain weather and contaminant files.
 wthdir = '/mnt/data/lima/iaq/contam/weatherFiles/'
@@ -171,7 +175,7 @@ def readACH(house, year, rcp, city):
     return ach
 
 for rcp in rcps:
-    hdf = pd.HDFStore(outdir+'HouseSummaryData_rcp'+str(rcp)+'_'+indoorAirTemp+'F.hdf')
+    hdf = pd.HDFStore(outdir+output+'_rcp'+str(rcp)+'_'+indoorAirTemp+'F.hdf')
     for house, node in zip(houses, nodes):
         for city in cities:
             print('Processing: ', rcp, house, city)
