@@ -233,12 +233,16 @@ def readMACA(city, year, rcp, model):
         print('Not a valid computer for access to MACA data. Try again...')
         sys.exit()
     if ((year>=2010) and (year<=2020)):
+        yearstr = '_1995_2006.csv'
+    elif ((year>=2010) and (year<=2020)):
         yearstr = '_2009_2020.csv'
     elif ((year>=2030) and (year<=2040)):
         yearstr = '_2029_2040.csv'
     elif ((year>=2044) and (year<=2056)):
         yearstr = '_2044_2056.csv'
-    elif ((year>=2090) and (year<=2098)):
+    elif ((year>=2086) and (year<=2095)):
+        yearstr = '_2085_2096.csv'
+    elif ((year>=2096) and (year<=2098)):
         yearstr = '_2089_2099.csv'
     else:
         print('Incorrect year. Try again...')
