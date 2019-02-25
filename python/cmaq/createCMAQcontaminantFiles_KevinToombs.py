@@ -14,11 +14,6 @@ import pandas as pd
 import numpy as np
 import os
 from   datetime import datetime, timedelta
-from math import *
-import xarray as xr
-import numpy  as np
-import pandas as pd
-from   datetime import datetime, timedelta
 import sys
 
 def find_WRF_pixel(latvar,lonvar,lat0,lon0):
