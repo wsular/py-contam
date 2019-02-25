@@ -1,0 +1,37 @@
+Name,Definition,Phase,Molecular Weight,Location,File Units,Convert units,Needed units
+AACD,Acetic and higher carboxylic acids,Gas,60,Out,ppmV,x/1000000*60/28.97,kg/kg
+ALD2,Acetaldehyde,Gas,44,Extr,ppbV,x/1000000000*44/28.97,kg/kg
+BENZENE,Accumulation Mode Xylene Product 2,Gas,78,Extr,ppbV,x/1000000000*78/28.97,kg/kg
+CO,Carbon monoxide,Gas,28,Extr,ppbV,x/1000000000*28/28.97,kg/kg
+ETOH,Ethanol,Gas,46,Out,ppmV,x/1000000*46/28.97,kg/kg
+FORM,Formaldehyde,Gas,30,Out,ppmV,x/1000000*30/28.97,kg/kg
+H2O2,Hydrogen peroxide,Gas,34,Out,ppmV,x/1000000*34/28.97,kg/kg
+HNO3,Nitric acid,Gas,63,Extr,ppbV,x/1000000000*63/28.97,kg/kg
+HONO,Nitrous acid,Gas,47,Extr,ppbV,x/1000000000*47/28.97,kg/kg
+ISOP,Isoprene,Gas,68,Extr,ppbV,x/1000000000*68/28.97,kg/kg
+MEOH,Methanol,Gas,32,Out,ppmV,x/1000000*32/28.97,kg/kg
+MEPX,Methylhydroperoxide,Gas,48,Out,ppmV,x/1000000*48/28.97,kg/kg
+MGLY,Methylglyoxal and other aromatic products,Gas,72,Out,ppmV,x/1000000*72/28.97,kg/kg
+NO,Nitric oxide,Gas,30,Extr,ppbV,x/1000000000*30/28.97,kg/kg
+NO2,Nitrogen dioxide,Gas,46,Extr,ppbV,x/1000000000*46/28.97,kg/kg
+O3,Ozone,Gas,48,Extr,ppbV,x/1000000000*48/28.97,kg/kg
+PAN,Peroxyacetyl nitrate,Gas,121,Extr,ppbV,x/1000000000*121/28.97,kg/kg
+SESQ,Sesquiterpenes,Gas,204,Out,ppmV,x/1000000*204/28.97,kg/kg
+SO2,Sulfur dioxide,Gas,64,Extr,ppbV,x/1000000000*64/28.97,kg/kg
+TERP,Terpene,Gas,136,Extr,ppbV,x/1000000000*136/28.97,kg/kg
+XYL,Xylenes,Gas,106,Extr,ppbV,x/1000000000*106/28.97,kg/kg
+TOL,Toluene and other monoalkyl aromatics,Gas,92,Extr,ppbV,x/1000000000*92/28.97,kg/kg
+PM25_HP,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_CL,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_EC,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_NA,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_MG,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_K,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_CA,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_NH4,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_NO3,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_OC,,Particulate,,Extr,ugC/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_SOIL,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_SO4,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_TOT,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM10_TOT,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
