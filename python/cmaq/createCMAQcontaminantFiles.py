@@ -140,7 +140,7 @@ output_dir  = '/Users/vonw/data/iaq/cmaq/output/'
 variables   = pd.read_csv('/Users/vonw/work/software/iaq/py-contam/python/vrs.csv')
 sites       = pd.read_csv('/Users/vonw/work/software/iaq/py-contam/python/iaq_cities.csv')
 
-years  = [2086, 2087, 2088, 2089, 2090, 2091, 2092, 2093, 2094, 2095]
+years  = [2095]
 months = range(1,13)
 rcps   = ['RCP4.5', 'RCP8.5']
 for row, site in sites.iterrows():
