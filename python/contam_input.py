@@ -160,7 +160,7 @@ def readNOAA_ISH(USAF, WBAN, year):
     Pb   = pressureCorrection(Ps, Hstn, T+273.15)                               # Pa
     wspd = np.array([ob.wind_speed.get_numeric() for ob in obs])                # m s-1 
     wdir = np.array([ob.wind_direction.get_numeric() for ob in obs])            # degrees
-    # Conversion from relative humidity to mixing ration 
+    # Conversion from relative humidity to mixing ratio 
     #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
     A    = 6.116441
     m    = 7.591386
