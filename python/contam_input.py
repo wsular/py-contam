@@ -5,6 +5,57 @@ Created on Tue May 30 14:41:45 2017
 @author: Von P. Walden, Washington State University
 """
 
+def readHouseData(filename):
+    """
+    This function reads data from an Excel file into a pandas dataframe, df.
+    The dataframe can then be written to a CONTAM weather file using function,
+    writeContamWeatherFile. "filename" should be an absolute filename with a 
+    directory and a filename.
+    
+        Written by  Von P. Walden
+                    Washington State University
+                    Laboratory for Atmospheric Research
+                    8 Jul 2019
+    """
+    import xlrd
+    import pandas as pd
+
+    wb = xlrd.open_workbook(filename)
+    sh = wb.sheet_by_name('Weather data')
+
+    #%%
+    # Column 0 - AbsTime_PST
+    # Column 1 - Pressure          (mbar)
+    # Column 2 - outdoor_m200wx_RH (%)
+    # Column 3 - outdoor_m200wx_T  (degC)
+    # Column 4 - outdoor_m200wx_WD (deg)
+    # Column 5 - outdoor_m200wx_WS (m/s)
+    times = []
+    for row in range(2,sh.nrows):
+        times.append(xlrd.xldate.xldate_as_datetime(sh.row(row)[0].value, wb.datemode))
+
+    wth = pd.DataFrame({ 'Pb': sh.col_values(1, start_rowx=2),
+                         'RH': sh.col_values(2, start_rowx=2),
+                         'Ta': sh.col_values(3, start_rowx=2)+273.15,
+                         'Wd': sh.col_values(4, start_rowx=2),
+                         'Ws': sh.col_values(5, start_rowx=2)},
+                         index=times)
+    
+    # Conversion from relative humidity to mixing ratio
+    #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
+    A    = 6.116441
+    m    = 7.591386
+    Tn   = 240.7263
+    es   = A*10**(m*(df.Ta.values-273.15)/(df.Ta.values-273.15+Tn))
+    ws   = 0.622 * (es/df.Pb.values)
+    w    = df.RH.values * ws * 1000.  # Factor of 1000 converts from kg/kg to g/kg.
+
+    # Update the data frame with mixing ratios.
+    wth['Hr'] = w
+    wth = wth.drop('RH')
+
+    return wth
+
 def readWRF_CMAQ(gridFile, dataFile, lat, lon):
     """
     This function reads data from a WRF CMAQ data file into a pandas dataframe, df.
