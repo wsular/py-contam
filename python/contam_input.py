@@ -40,7 +40,8 @@ def readHouseData(filename):
                          'Wd': sh.col_values(4, start_rowx=2),
                          'Ws': sh.col_values(5, start_rowx=2)},
                          index=times)
-    wth.Ta = wth.Ta + 273.15
+    wth.Pb = wth.Pb * 100.        # Convert from mbar to Pa
+    wth.Ta = wth.Ta + 273.15      # Convert from deg C to K
 
     # Conversion from relative humidity to mixing ratio
     #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
@@ -55,6 +56,9 @@ def readHouseData(filename):
     wth['Hr'] = w
     wth.drop(columns = ['RH'], inplace=True)
     
+    # Resample the dataframe to 30-minute time steps.
+    wth = wth.resample('30T').mean()
+
     return wth
 
 def readWRF_CMAQ(gridFile, dataFile, lat, lon):
