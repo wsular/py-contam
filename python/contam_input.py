@@ -49,7 +49,7 @@ def readWRF_CMAQ(gridFile, dataFile, lat, lon):
     P    = DATA.AIR_DENS.values[:,0,ilat,ilon]*287.0*T
     wspd = DATA.WSPD10.values[:,0,ilat,ilon]
     wdir = DATA.WDIR10.values[:,0,ilat,ilon]
-    # Conversion from relative humidity to mixing ration 
+    # Conversion from relative humidity to mixing ratio
     #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
     A    = 6.116441
     m    = 7.591386
