@@ -36,24 +36,25 @@ def readHouseData(filename):
 
     wth = pd.DataFrame({ 'Pb': sh.col_values(1, start_rowx=2),
                          'RH': sh.col_values(2, start_rowx=2),
-                         'Ta': sh.col_values(3, start_rowx=2)+273.15,
+                         'Ta': sh.col_values(3, start_rowx=2),
                          'Wd': sh.col_values(4, start_rowx=2),
                          'Ws': sh.col_values(5, start_rowx=2)},
                          index=times)
-    
+    wth.Ta = wth.Ta + 273.15
+
     # Conversion from relative humidity to mixing ratio
     #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
     A    = 6.116441
     m    = 7.591386
     Tn   = 240.7263
-    es   = A*10**(m*(df.Ta.values-273.15)/(df.Ta.values-273.15+Tn))
-    ws   = 0.622 * (es/df.Pb.values)
-    w    = df.RH.values * ws * 1000.  # Factor of 1000 converts from kg/kg to g/kg.
+    es   = A*10**(m*(wth.Ta.values-273.15)/(wth.Ta.values-273.15+Tn))
+    ws   = 0.622 * (es/wth.Pb.values)
+    w    = wth.RH.values * ws * 1000.  # Factor of 1000 converts from kg/kg to g/kg.
 
     # Update the data frame with mixing ratios.
     wth['Hr'] = w
-    wth = wth.drop('RH')
-
+    wth.drop(columns = ['RH'], inplace=True)
+    
     return wth
 
 def readWRF_CMAQ(gridFile, dataFile, lat, lon):
