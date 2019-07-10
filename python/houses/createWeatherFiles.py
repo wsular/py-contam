@@ -4,28 +4,81 @@ Created on Tue Jul  9 11:31:07 2019
 
 @author: Von P. Walden, Washington State University
 """
-from contam_input import readHouseData
+from contam_input import readHouseData, writeContamWeatherFile
 
-d   = '/Volumes/VONSDRIVE/IAQ archived data/'
-fns = ['H002_summer/H002_summer_weather_final.xlsx',
-       'H002_winter/H002_winter_Weather_data_final.xlsx',
-       'H003_summer/H003_summer_weather_final.xlsx',
-       'H003_winter/H003_winter_WeatherStation_final.xlsx',
-       'H004_summer/H004_summer_WeatherData_final.xlsx',
-       'H004_winter/H004_winter_weather station data_final.xlsx',
-       'H005_summer/H005_summer_weather station_final.xlsx',
-       'H006_summer/H006_summer_weather station data_final.xlsx',
-       'H006_winter/H006_winter_weather station_final.xlsx',
-       'H007_summer/H007_summer_weather station data_final.xlsx',
-       'H007_winter/H007_winter_weather station data_final.xlsx',
-       'H008_summer/H008_summer_weather station data_final.xlsx',
-       'H008_winter/H008_winter_weather station data_final.xlsx',
-       'H009_summer/H009_summer_weather station data_final.xlsx',
-       'H009_winter/H009_winter_weather station data_final.xlsx',
-       'H010_summer/H010_summer_weather station data_final.xlsx',
-       'H010_winter/H010_winter_weather station data_final.xlsx']
+from bokeh.plotting import figure, show, output_file
+from bokeh.layouts import column
+
+d   = '/Users/vonw/data/iaq/houses/'
+
+fns = ['H002_summer_weather_final_contam.csv',
+       'H002_winter_weather_final_contam.csv',
+       'H003_summer_weather_final_contam.csv',
+       'H003_winter_weather_final_contam.csv',
+       'H004_summer_weather_final_contam.csv',
+       'H004_winter_weather_final_contam.csv',
+       'H005_summer_weather_final_contam.csv',
+       'H006_summer_weather_final_contam.csv',
+       'H006_winter_weather_final_contam.csv',
+       'H007_summer_weather_final_contam.csv',
+       'H007_winter_weather_final_contam.csv',
+       'H008_summer_weather_final_contam.csv',
+       'H008_winter_weather_final_contam.csv',
+       'H009_summer_weather_final_contam.csv',
+       'H009_winter_weather_final_contam.csv',
+       'H010_summer_weather_final_contam.csv',
+       'H010_winter_weather_final_contam.csv']
 
 for fn in fns:
     print('Processing:  ', d + fn)
+    
+    # Read the weather data and create a dataframe
     wth = readHouseData(d + fn)
-
+    
+    # Write the weather data to a contam wth file
+    writeContamWeatherFile(d + fn.split('/')[-1][:11] + '.wth', wth)
+    
+    # Create summary figure
+    output_file(d + fn.split('/')[-1][:11] + '.html')
+    
+    p1 = figure(plot_width=1000,
+              plot_height=250,
+              x_axis_type='datetime',
+              x_axis_label='Time (local)',
+              y_axis_label='Pressure (Pa)',
+              title=fn.split('/')[-1][:11])
+    p1.scatter(wth.index, wth.Pb, color='blue')
+    
+    p2 = figure(plot_width=1000,
+              plot_height=250,
+              x_axis_type='datetime',
+              x_axis_label='Time (local)',
+              y_axis_label='Temperature (K)',
+              x_range=p1.x_range)
+    p2.scatter(wth.index, wth.Ta, color='red')
+    
+    p3 = figure(plot_width=1000,
+              plot_height=250,
+              x_axis_type='datetime',
+              x_axis_label='Time (local)',
+              y_axis_label='Water Vapor (g/kg)',
+              x_range=p1.x_range)
+    p3.scatter(wth.index, wth.Hr, color='purple')
+    
+    p4 = figure(plot_width=1000,
+              plot_height=250,
+              x_axis_type='datetime',
+              x_axis_label='Time (local)',
+              y_axis_label='Wind Dir (deg)',
+              x_range=p1.x_range)
+    p4.scatter(wth.index, wth.Wd, color='lightgreen')
+    
+    p5 = figure(plot_width=1000,
+              plot_height=250,
+              x_axis_type='datetime',
+              x_axis_label='Time (local)',
+              y_axis_label='Wind Spd (m/s)',
+              x_range=p1.x_range)
+    p5.scatter(wth.index, wth.Ws, color='green')
+    
+    show(column(p1, p2, p3, p4, p5))
