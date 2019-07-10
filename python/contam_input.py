@@ -18,12 +18,13 @@ def readHouseData(filename):
                     8 Jul 2019
     """
     import xlrd
+    import numpy as np
     import pandas as pd
 
     wb = xlrd.open_workbook(filename)
-    sh = wb.sheet_by_name('Weather data')
+    sh = wb.sheet_by_name('Sheet 1')
 
-    #%%
+    #
     # Column 0 - AbsTime_PST
     # Column 1 - Pressure          (mbar)
     # Column 2 - outdoor_m200wx_RH (%)
@@ -40,8 +41,9 @@ def readHouseData(filename):
                          'Wd': sh.col_values(4, start_rowx=2),
                          'Ws': sh.col_values(5, start_rowx=2)},
                          index=times)
-    wth.Pb = wth.Pb * 100.        # Convert from mbar to Pa
-    wth.Ta = wth.Ta + 273.15      # Convert from deg C to K
+    wth = wth.replace(r'', np.NaN)    # Handles empty cells
+    wth.Pb = wth.Pb * 100.            # Convert from mbar to Pa
+    wth.Ta = wth.Ta + 273.15          # Convert from deg C to K
 
     # Conversion from relative humidity to mixing ratio
     #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
