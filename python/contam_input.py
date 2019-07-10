@@ -17,31 +17,17 @@ def readHouseData(filename):
                     Laboratory for Atmospheric Research
                     8 Jul 2019
     """
-    import xlrd
-    import numpy as np
+    import numpy  as np
     import pandas as pd
-
-    wb = xlrd.open_workbook(filename)
-    sh = wb.sheet_by_name('Sheet 1')
-
-    #
-    # Column 0 - AbsTime_PST
-    # Column 1 - Pressure          (mbar)
-    # Column 2 - outdoor_m200wx_RH (%)
-    # Column 3 - outdoor_m200wx_T  (degC)
-    # Column 4 - outdoor_m200wx_WD (deg)
-    # Column 5 - outdoor_m200wx_WS (m/s)
-    times = []
-    for row in range(2,sh.nrows):
-        times.append(xlrd.xldate.xldate_as_datetime(sh.row(row)[0].value, wb.datemode))
-
-    wth = pd.DataFrame({ 'Pb': sh.col_values(1, start_rowx=2),
-                         'RH': sh.col_values(2, start_rowx=2),
-                         'Ta': sh.col_values(3, start_rowx=2),
-                         'Wd': sh.col_values(4, start_rowx=2),
-                         'Ws': sh.col_values(5, start_rowx=2)},
-                         index=times)
-    wth = wth.replace(r'', np.NaN)    # Handles empty cells
+    
+    # Read in the data from the csv file
+    wth = pd.read_csv(filename, 
+                      parse_dates=[0], 
+                      skiprows=2, 
+                      names=['time', 'Pb', 'Ta', 'RH', 'Wd', 'Ws'], 
+                      index_col='time')
+    wth = wth.replace(r'^\s+$', np.nan, regex=True)   # Replace any whitespace/empty variables with nan
+    wth = wth.apply(pd.to_numeric)                    # convert all columns of DataFrame
     wth.Pb = wth.Pb * 100.            # Convert from mbar to Pa
     wth.Ta = wth.Ta + 273.15          # Convert from deg C to K
 
