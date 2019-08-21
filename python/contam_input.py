@@ -77,7 +77,7 @@ def readHouseContaminantData(houseDirectory):
     pm25_units  = pd.read_csv(houseDirectory+'PM2.5-Table 1.csv', nrows=1).values[0]
     ptrms       = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
     ptrms_units = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', nrows=1).values[0]
-    df          = pd.concat([rack, pm25, ptrms], keys=['rack', 'pm25', 'ptrms'])
+    df          = pd.concat([rack, pm25, ptrms], keys=['rack', 'pm25', 'ptrms'], sort=True)
     units       = np.concatenate([rack_units[1:], pm25_units[1:], ptrms_units[1:]])
     
     return df, units
