@@ -4,10 +4,12 @@ Created on Tue May 30 14:41:45 2017
 
 @author: Von P. Walden, Washington State University
 """
+import numpy  as np
+import pandas as pd
 
-def readHouseData(filename):
+def readHouseWeatherData(filename):
     """
-    This function reads data from an Excel file into a pandas dataframe, df.
+    This function reads data from a CSV file into a pandas dataframe, df.
     The dataframe can then be written to a CONTAM weather file using function,
     writeContamWeatherFile. "filename" should be an absolute filename with a 
     directory and a filename.
@@ -17,9 +19,7 @@ def readHouseData(filename):
                     Laboratory for Atmospheric Research
                     8 Jul 2019
     """
-    import numpy  as np
-    import pandas as pd
-    
+
     # Read in the data from the csv file
     wth = pd.read_csv(filename, 
                       parse_dates=[0], 
@@ -49,6 +49,65 @@ def readHouseData(filename):
 
     return wth
 
+def readHouseContaminantData(houseDirectory):
+    """
+    This function reads data from CSV files into a pandas dataframe, df.
+    The dataframe can then be written to a CONTAM ctm file using function,
+    writeContamWeatherFile. "houseDirectory" is the directory that contains
+    the outdoor_rack-Table 1.csv, PM2.5-Table 1.csv and PTR-MS-Table 1.csv 
+    files for the desired house and season.
+    
+    The data are accessed from the dataframe, df, like:
+
+        df.loc['rack']['CO2']
+        df.loc['pm25']['PM2.5']
+        df.loc['ptrms']['Formaldehyde']
+
+    Note that the keys in the dataframe provide a multi-index by which one
+    can select the type of measurements.
+    
+        Written by  Von P. Walden
+                    Washington State University
+                    Laboratory for Atmospheric Research
+                    18 August 2019
+    """    
+    rack        = pd.read_csv(houseDirectory+'outdoor_rack-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
+    rack_units  = pd.read_csv(houseDirectory+'outdoor_rack-Table 1.csv', nrows=1).values[0]
+    pm25        = pd.read_csv(houseDirectory+'PM2.5-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
+    pm25_units  = pd.read_csv(houseDirectory+'PM2.5-Table 1.csv', nrows=1).values[0]
+    ptrms       = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
+    ptrms_units = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', nrows=1).values[0]
+    df          = pd.concat([rack, pm25, ptrms], keys=['rack', 'pm25', 'ptrms'])
+    units       = np.concatenate([rack_units[1:], pm25_units[1:], ptrms_units[1:]])
+    
+    return df, units
+
+def writeContamSpeciesFile(specFile, df):
+    """
+    This function writes the data in the pandas dataframe, df, to a text file.
+    The text file is formatted as a CONTAM species file.
+
+    """
+    # Open new file.
+    fp = open(specFile, 'w')
+    
+    # Write the first header lines.
+    fp.write('SpeciesFile ContamW 2.0 ! file and version identification\n\n\n');
+    fp.write(df.index[0].to_pydatetime().strftime('%m/%d')  + '\t');
+    fp.write(df.index[-1].to_pydatetime().strftime('%m/%d') + '\t' + str(len(df.columns)) + '\n');
+    fp.write('\t'.join(df.columns.values.tolist()) + '\n');
+    # Write the hourly df.
+    for hour in df.index:
+        fp.write(  hour.strftime('%m/%d') + '\t'
+                 + hour.strftime('%H:%M:%S') + '\t'
+                 + '\t'.join([str(x) for x in df.loc[hour].values.tolist()]) +'\n')
+    
+    # Close the file.
+    fp.close()
+    
+    return
+
+
 def readWRF_CMAQ(gridFile, dataFile, lat, lon):
     """
     This function reads data from a WRF CMAQ data file into a pandas dataframe, df.
@@ -61,8 +120,6 @@ def readWRF_CMAQ(gridFile, dataFile, lat, lon):
                     2 Jun 2017
     """
     import xarray as xr
-    import numpy  as np
-    import pandas as pd
     from   datetime import datetime, timedelta
     
     def find_WRF_pixel(latvar,lonvar,lat0,lon0):
@@ -242,8 +299,6 @@ def readMACA(city, year, rcp, model):
                     Laboratory for Atmospheric Research
                     4 Oct 2017
     """
-    import pandas as pd
-    import numpy  as np
     import pytz
     import ephem
     import sys
