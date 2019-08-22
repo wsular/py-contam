@@ -40,7 +40,8 @@ p1 = figure(plot_width=1000,
            x_axis_type='datetime',
            y_axis_label='Temperature (K)',
            title=d.split('/')[-2])
-p1.line(wth.index, wth.Ta.values)
+p1.line(wth.index, wth.Ta.values, line_width=3)
+p1.circle(wth.index, wth.Ta.values)
 
 p2 = figure(plot_width=1000,
            plot_height=250,
@@ -48,7 +49,8 @@ p2 = figure(plot_width=1000,
            x_range=p1.x_range,
            y_axis_label='Ozone (ppb)',
            title=None)
-p2.line(ctm.loc['rack'].index, ctm.loc['rack']['O3'].values)
+p2.line(ctm.loc['rack'].index, ctm.loc['rack']['O3'].values, line_width=3, line_color='purple')
+p2.circle(ctm.loc['rack'].resample('30T').mean().index, ctm.loc['rack']['O3'].resample('30T').mean().values)
 
 p3 = figure(plot_width=1000,
            plot_height=250,
@@ -56,7 +58,8 @@ p3 = figure(plot_width=1000,
            x_range=p1.x_range,
            y_axis_label='PM2.5 (ug m-3)',
            title=None)
-p3.line(ctm.loc['pm25'].index, ctm.loc['pm25']['PM2.5'].values)
+p3.line(ctm.loc['pm25'].index, ctm.loc['pm25']['PM2.5'].values, line_width=3, line_color='lightgreen')
+p3.circle(ctm.loc['pm25'].resample('30T').mean().index, ctm.loc['pm25']['PM2.5'].resample('30T').mean().values)
 
 p4 = figure(plot_width=1000,
            plot_height=250,
@@ -64,6 +67,7 @@ p4 = figure(plot_width=1000,
            x_range=p1.x_range,
            y_axis_label='HCHO (ppb)',
            title=None)
-p4.line(ctm.loc['ptrms'].index, ctm.loc['ptrms']['Formaldehyde'].values)
+p4.line(ctm.loc['ptrms'].index, ctm.loc['ptrms']['Formaldehyde'].values, line_width=3, line_color='salmon')
+p4.circle(ctm.loc['ptrms'].resample('30T').mean().index, ctm.loc['ptrms']['Formaldehyde'].resample('30T').mean().values)
 
 show(column(p1, p2, p3, p4))
