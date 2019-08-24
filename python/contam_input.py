@@ -6,6 +6,8 @@ Created on Tue May 30 14:41:45 2017
 """
 import numpy  as np
 import pandas as pd
+import xarray as xr
+from datetime import datetime, timedelta
 
 def readHouseWeatherData(filename):
     """
@@ -82,96 +84,183 @@ def readHouseContaminantData(houseDirectory):
     
     return df, units
 
-def writeContamSpeciesFile(specFile, df):
+def readWRF_CMAQfile(gridFile, dataFile, lat, lon, vrs, eqs, wthFlag):
     """
-    This function writes the data in the pandas dataframe, df, to a text file.
-    The text file is formatted as a CONTAM species file.
-
-    """
-    # Open new file.
-    fp = open(specFile, 'w')
-    
-    # Write the first header lines.
-    fp.write('SpeciesFile ContamW 2.0 ! file and version identification\n\n\n');
-    fp.write(df.index[0].to_pydatetime().strftime('%m/%d')  + '\t');
-    fp.write(df.index[-1].to_pydatetime().strftime('%m/%d') + '\t' + str(len(df.columns)) + '\n');
-    fp.write('\t'.join(df.columns.values.tolist()) + '\n');
-    # Write the hourly df.
-    for hour in df.index:
-        fp.write(  hour.strftime('%m/%d') + '\t'
-                 + hour.strftime('%H:%M:%S') + '\t'
-                 + '\t'.join([str(x) for x in df.loc[hour].values.tolist()]) +'\n')
-    
-    # Close the file.
-    fp.close()
-    
-    return
-
-
-def readWRF_CMAQ(gridFile, dataFile, lat, lon):
-    """
-    This function reads data from a WRF CMAQ data file into a pandas dataframe, df.
-    The dataframe can then be written to a CONTAM weather file using function,
+    This function reads data from a WRF CMAQ data file into pandas dataframes,
+    ctm and wth. The dataframes can then be written to CONTAM contaminant and 
+    weather files using functions, writeContamSpeciesFile and 
     writeContamWeatherFile.
     
         Written by  Von P. Walden
                     Washington State University
                     Laboratory for Atmospheric Research
-                    2 Jun 2017
-    """
-    import xarray as xr
-    from   datetime import datetime, timedelta
-    
-    def find_WRF_pixel(latvar,lonvar,lat0,lon0):
-        # Read latitude and longitude from file into numpy arrays
-        # Renamed findWRFpixel from original function, naive_fast, written by Vikram Ravi.
-        latvals = latvar[:]
-        lonvals = lonvar[:]
-        dist_sq = (latvals-lat0)**2 + (lonvals-lon0)**2
-        minindex_flattened = dist_sq.argmin()  # 1D index of min element
-        iy_min,ix_min = np.unravel_index(minindex_flattened, latvals.shape)
-        return int(iy_min),int(ix_min)
-        
+                     2 Jun 2017
+        Updated:    25 Feb 2019 - Simplified original code created by Kevin Toombs.
+    """    
     # Open the WRF GRIDCRO2D file to determine the WRF pixel for lat/lon.
     GRID = xr.open_dataset(gridFile)
     ilat, ilon = find_WRF_pixel(GRID.LAT[0,0,:,:].values,GRID.LON[0,0,:,:].values,lat,lon)
-    
     # Open WRF-CMAQ data file.
+    print('Reading: ', dataFile)
     DATA = xr.open_dataset(dataFile)
     # Create a datetime index.
     datestr = str(DATA.SDATE)
     date    = datetime(int(datestr[0:4]),1,1) + timedelta(int(datestr[4:])-1)
     time    = [date + timedelta(hours=float(t)) for t in DATA.TSTEP]
     #
-    # ............................... WEATHER DATA ............................
+    # ............................... CONTAMINANT DATA ............................
     #
-    # Read meteorological data from WRF-CMAQ data file.
-    T    = DATA.SFC_TMP.values[:,0,ilat,ilon] + 273.15   # in K
-    P    = DATA.AIR_DENS.values[:,0,ilat,ilon]*287.0*T
-    wspd = DATA.WSPD10.values[:,0,ilat,ilon]
-    wdir = DATA.WDIR10.values[:,0,ilat,ilon]
-    # Conversion from relative humidity to mixing ratio
-    #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
-    A    = 6.116441
-    m    = 7.591386
-    Tn   = 240.7263
-    es   = A*10**(m*(T-273.15)/(T-273.15+Tn))
-    ws   = 0.622 * (es/P)
-    w    = DATA.RH.values[:,0,ilat,ilon] * ws * 1000.  # Factor of 1000 converts from kg/kg to g/kg.
+    # Create a pandas dataframe with contaminant variables.
+    ctm = pd.DataFrame({},index=time)
+    #ctm = ctm.set_index(pd.DatetimeIndex(ctm.index))
     
-    # Create a pandas dataframe with meteorological variables.
-    wth   = pd.DataFrame({'Ta':T, 
-                          'Pb':P,
-                          'Ws':wspd,
-                          'Wd':wdir,
-                          'Hr':w},
-                          index=time)
-    #
-    # ........................... CONTAMINANT DATA ............................
+    for x in range(len(vrs)):
+        vr = vrs.values[x]
+        eq = eqs.values[x]
+        dat = DATA[vr].values[:,0,ilat,ilon]
+        
+        #print(eq)
+        if(eq[-1] == 'S'):
+            air = DATA['AIR_DENS'].values[:,0,ilat,ilon]
+            dat = dat/1000000000/air
+            #dat.apply(lambda x: x/1000000000/AIR_DENS)
+        else:
+            pass
+            split_eq = eq.split('/')
+            mid_split = split_eq[1].split('*')
+            base = float(mid_split[0])
+            snd = float(mid_split[1])
+            thrd = float(split_eq[2])
+            dat = dat / base * snd / thrd
+            
+        
+        ctm[vr] = dat
+
+    # ........................... WEATHER DATA ............................
     #
     # Read contaminat data from WRF-CMAQ data file.
+    if(wthFlag):
+        if('AIR_DENS' in DATA):
+            T    = DATA.SFC_TMP.values[:,0,ilat,ilon] + 273.15   # in K
+            P    = DATA.AIR_DENS.values[:,0,ilat,ilon]*287.0*T
+            wspd = DATA.WSPD10.values[:,0,ilat,ilon]
+            wdir = DATA.WDIR10.values[:,0,ilat,ilon]
+            # Conversion from relative humidity to mixing ration 
+            #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
+            A    = 6.116441
+            m    = 7.591386
+            Tn   = 240.7263
+            es   = A*10**(m*(T-273.15)/(T-273.15+Tn))
+            ws   = 0.622 * (es/P)
+            w    = DATA.RH.values[:,0,ilat,ilon] * ws * 1000.  # Factor of 1000 converts from kg/kg to g/kg.
+            
+            # Create a pandas dataframe with meteorological variables.
+            wth   = pd.DataFrame({'Ta':T, 
+                                  'Pb':P,
+                                  'Ws':wspd,
+                                  'Wd':wdir,
+                                  'Hr':w},
+                                index=time)
+    else:
+        wth = pd.DataFrame({})
+    
+    GRID.close()
+    DATA.close()
+    return ctm, wth
 
-    return wth
+def find_WRF_pixel(latvar,lonvar,lat0,lon0):
+    # Read latitude and longitude from file into numpy arrays
+    # Renamed findWRFpixel from original function, naive_fast, written by Vikram Ravi.
+    latvals = latvar[:]
+    lonvals = lonvar[:]
+    dist_sq = (latvals-lat0)**2 + (lonvals-lon0)**2
+    minindex_flattened = dist_sq.argmin()  # 1D index of min element
+    iy_min,ix_min = np.unravel_index(minindex_flattened, latvals.shape)
+    return int(iy_min),int(ix_min)
+
+def readWRF_CMAQfile(gridFile, dataFile, lat, lon, vrs, eqs, wthFlag):
+    """
+    This function reads data from a WRF CMAQ data file into pandas dataframes,
+    ctm and wth. The dataframes can then be written to CONTAM contaminant and 
+    weather files using functions, writeContamSpeciesFile and 
+    writeContamWeatherFile.
+    
+        Written by  Von P. Walden
+                    Washington State University
+                    Laboratory for Atmospheric Research
+                     2 Jun 2017
+        Updated:    25 Feb 2019 - Simplified original code created by Kevin Toombs.
+    """    
+    # Open the WRF GRIDCRO2D file to determine the WRF pixel for lat/lon.
+    GRID = xr.open_dataset(gridFile)
+    ilat, ilon = find_WRF_pixel(GRID.LAT[0,0,:,:].values,GRID.LON[0,0,:,:].values,lat,lon)
+    # Open WRF-CMAQ data file.
+    print('Reading: ', dataFile)
+    DATA = xr.open_dataset(dataFile)
+    # Create a datetime index.
+    datestr = str(DATA.SDATE)
+    date    = datetime(int(datestr[0:4]),1,1) + timedelta(int(datestr[4:])-1)
+    time    = [date + timedelta(hours=float(t)) for t in DATA.TSTEP]
+    #
+    # ............................... CONTAMINANT DATA ............................
+    #
+    # Create a pandas dataframe with contaminant variables.
+    ctm = pd.DataFrame({},index=time)
+    #ctm = ctm.set_index(pd.DatetimeIndex(ctm.index))
+    
+    for x in range(len(vrs)):
+        vr = vrs.values[x]
+        eq = eqs.values[x]
+        dat = DATA[vr].values[:,0,ilat,ilon]
+        
+        #print(eq)
+        if(eq[-1] == 'S'):
+            air = DATA['AIR_DENS'].values[:,0,ilat,ilon]
+            dat = dat/1000000000/air
+            #dat.apply(lambda x: x/1000000000/AIR_DENS)
+        else:
+            pass
+            split_eq = eq.split('/')
+            mid_split = split_eq[1].split('*')
+            base = float(mid_split[0])
+            snd = float(mid_split[1])
+            thrd = float(split_eq[2])
+            dat = dat / base * snd / thrd
+            
+        
+        ctm[vr] = dat
+
+    # ........................... WEATHER DATA ............................
+    #
+    # Read contaminat data from WRF-CMAQ data file.
+    if(wthFlag):
+        if('AIR_DENS' in DATA):
+            T    = DATA.SFC_TMP.values[:,0,ilat,ilon] + 273.15   # in K
+            P    = DATA.AIR_DENS.values[:,0,ilat,ilon]*287.0*T
+            wspd = DATA.WSPD10.values[:,0,ilat,ilon]
+            wdir = DATA.WDIR10.values[:,0,ilat,ilon]
+            # Conversion from relative humidity to mixing ration 
+            #    ....http://www.vaisala.com/Vaisala%20Documents/Application%20notes/Humidity_Conversion_Formulas_B210973EN-F.pdf
+            A    = 6.116441
+            m    = 7.591386
+            Tn   = 240.7263
+            es   = A*10**(m*(T-273.15)/(T-273.15+Tn))
+            ws   = 0.622 * (es/P)
+            w    = DATA.RH.values[:,0,ilat,ilon] * ws * 1000.  # Factor of 1000 converts from kg/kg to g/kg.
+            
+            # Create a pandas dataframe with meteorological variables.
+            wth   = pd.DataFrame({'Ta':T, 
+                                  'Pb':P,
+                                  'Ws':wspd,
+                                  'Wd':wdir,
+                                  'Hr':w},
+                                index=time)
+    else:
+        wth = pd.DataFrame({})
+    
+    GRID.close()
+    DATA.close()
+    return ctm, wth
 
 def readNOAA_ISH(USAF, WBAN, year):
     """This function reads data from NOAA ISH data files for U.S.
@@ -361,7 +450,7 @@ def readMACA(city, year, rcp, model):
     Ps     = 101325. * (1 - 2.25577e-5 * city.altitude)**5.25588      # Very simple conversion from altitude to pressure; https://www.engineeringtoolbox.com/air-altitude-pressure-d_462.html
     Tmax   = tasmax[b:e][model]
     Tmin   = tasmin[b:e][model]
-    Tavg   = pd.concat((Tmax,Tmin),axis=1).mean(axis=1)
+    #Tavg   = pd.concat((Tmax,Tmin),axis=1).mean(axis=1)
     Hr     = huss[b:e][model] / (1 - huss[b:e][model]) * 1000.  # convert from specific humidity to mixing ratio, then from kg kg-1 to g kg-1.
     prcp   = pr[b:e][model]
     wspd   = (uas[b:e][model]**2 + vas[b:e][model]**2)**0.5
@@ -442,3 +531,29 @@ def writeContamWeatherFile(wthrFile, df):
     fp.close()
     
     return
+
+def writeContamSpeciesFile(specFile, df):
+    """
+    This function writes the data in the pandas dataframe, df, to a text file.
+    The text file is formatted as a CONTAM species file.
+
+    """
+    # Open new file.
+    fp = open(specFile, 'w')
+    
+    # Write the first header lines.
+    fp.write('SpeciesFile ContamW 2.0 ! file and version identification\n\n\n');
+    fp.write(df.index[0].to_pydatetime().strftime('%m/%d')  + '\t');
+    fp.write(df.index[-1].to_pydatetime().strftime('%m/%d') + '\t' + str(len(df.columns)) + '\n');
+    fp.write('\t'.join(df.columns.values.tolist()) + '\n');
+    # Write the hourly df.
+    for hour in df.index:
+        fp.write(  hour.strftime('%m/%d') + '\t'
+                 + hour.strftime('%H:%M:%S') + '\t'
+                 + '\t'.join([str(x) for x in df.loc[hour].values.tolist()]) +'\n')
+    
+    # Close the file.
+    fp.close()
+    
+    return
+
