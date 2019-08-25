@@ -53,36 +53,32 @@ def readHouseWeatherData(filename):
 
 def readHouseContaminantData(houseDirectory):
     """
-    This function reads data from CSV files into a pandas dataframe, df.
-    The dataframe can then be written to a CONTAM ctm file using function,
-    writeContamWeatherFile. "houseDirectory" is the directory that contains
-    the outdoor_rack-Table 1.csv, PM2.5-Table 1.csv and PTR-MS-Table 1.csv 
-    files for the desired house and season.
+    This function reads data from CSV files into pandas dataframes, rack,
+    pm25 and ptrms. The dataframe can then be written to a CONTAM ctm file 
+    using function, writeContamWeatherFile. "houseDirectory" is the directory 
+    that contains the outdoor_rack-Table 1.csv, PM2.5-Table 1.csv and 
+    PTR-MS-Table 1.csv files for the desired house and season.
     
     The data are accessed from the dataframe, df, like:
 
-        df.loc['rack']['CO2']
-        df.loc['pm25']['PM2.5']
-        df.loc['ptrms']['Formaldehyde']
+        rack['CO2']
+        pm25['PM2.5']
+        ptrms['Formaldehyde']
 
-    Note that the keys in the dataframe provide a multi-index by which one
-    can select the type of measurements.
+    Note that the dataframes provide a multi-index by which one
+    can determine both the type of measurements and the units.
     
         Written by  Von P. Walden
                     Washington State University
                     Laboratory for Atmospheric Research
                     18 August 2019
+        Updated:    24 August 2019 - Minor changes to how data is returned.
     """    
-    rack        = pd.read_csv(houseDirectory+'outdoor_rack-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
-    rack_units  = pd.read_csv(houseDirectory+'outdoor_rack-Table 1.csv', nrows=1).values[0]
-    pm25        = pd.read_csv(houseDirectory+'PM2.5-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
-    pm25_units  = pd.read_csv(houseDirectory+'PM2.5-Table 1.csv', nrows=1).values[0]
-    ptrms       = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', header=[0], skiprows=[1], parse_dates=True, index_col=[0], skipinitialspace=True)
-    ptrms_units = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', nrows=1).values[0]
-    df          = pd.concat([rack, pm25, ptrms], keys=['rack', 'pm25', 'ptrms'], sort=True)
-    units       = np.concatenate([rack_units[1:], pm25_units[1:], ptrms_units[1:]])
+    rack  = pd.read_csv(houseDirectory+'outdoor_rack-Table 1.csv', header=[0, 1], parse_dates=True, index_col=[0], skipinitialspace=True)
+    pm25  = pd.read_csv(houseDirectory+'PM2.5-Table 1.csv', header=[0, 1], parse_dates=True, index_col=[0], skipinitialspace=True)
+    ptrms = pd.read_csv(houseDirectory+'PTR-MS-Table 1.csv', header=[0, 1], parse_dates=True, index_col=[0], skipinitialspace=True)
     
-    return df, units
+    return rack, pm25, ptrms
 
 def readWRF_CMAQfile(gridFile, dataFile, lat, lon, vrs, eqs, wthFlag):
     """
@@ -546,7 +542,7 @@ def writeContamSpeciesFile(specFile, df):
     fp.write(df.index[0].to_pydatetime().strftime('%m/%d')  + '\t');
     fp.write(df.index[-1].to_pydatetime().strftime('%m/%d') + '\t' + str(len(df.columns)) + '\n');
     fp.write('\t'.join(df.columns.values.tolist()) + '\n');
-    # Write the hourly df.
+    # Write the df.
     for hour in df.index:
         fp.write(  hour.strftime('%m/%d') + '\t'
                  + hour.strftime('%H:%M:%S') + '\t'
