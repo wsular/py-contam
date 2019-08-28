@@ -46,17 +46,17 @@ wth['density'] = wth['Pb'] / (287. * wth['Ta'])   # 287 is the gas constant for 
 # ....Read contaminant data
 #for d in ds:
 d  = ds[6]      # House 5
-#rack, pm25, ptrms = contam.readHouseContaminantData(d)
-rack, pm25, ptrms = readHouseContaminantData(d)
+rack, pm25, ptrms = contam.readHouseContaminantData(d)
+#rack, pm25, ptrms = readHouseContaminantData(d)
 pm25 = pm25.drop(columns=['Unnamed: 2_level_0', 'Unnamed: 3_level_0', 'Unnamed: 4_level_0'])
 
 time_min = max([min(wth.index), min(rack.index), min(pm25.index), min(ptrms.index)])
 time_max = min([max(wth.index), max(rack.index), max(pm25.index), max(ptrms.index)])
 
 wth   = wth[time_min:time_max]
-rack  = rack[time_min:time_max].resample('30T').mean()
-pm25  = pm25[time_min:time_max].resample('30T').mean()
-ptrms = ptrms[time_min:time_max].resample('30T').mean()
+rack  = rack[time_min:time_max].resample('30T').mean().interpolate()
+pm25  = pm25[time_min:time_max].resample('30T').mean().interpolate()
+ptrms = ptrms[time_min:time_max].resample('30T').mean().interpolate()
 ctm   = pd.concat([rack[1:], pm25[1:], ptrms[1:]], axis=1)
 
 for v, u in ctm.columns:
@@ -74,4 +74,4 @@ for v, u in ctm.columns:
 contam.writeContamWeatherFile(d + d.split('/')[-2] + '.wth', wth)
 #     Contaminant file
 ctm.columns = ctm.columns.droplevel(1) # drop level 1 of columns so that df works with write function.
-contam.writeContamSpeciesFile(d + d.split('/')[-2] + '.ctm', ctm)
+contam.writeContamSpeciesFile(d + d.split('/')[-2] + '.ctm', ctm[['O3', 'PM2.5', 'Formaldehyde']])
