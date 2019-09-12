@@ -18,14 +18,14 @@ ds = [d.split('.')[0] + '/' for d in ds]
 
 #............................... Weather .....................................
 # ....Read weather data
-wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/H005_summer.wth', 
+wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/H010_winter.wth', 
                   sep='\t', 
-                  skiprows=18, 
+                  skiprows=16, 
                   header=None, 
                   names=['date', 'time', 'Ta', 'Pb', 'Ws', 'Wd', 'Hr', 'Ith', 'Idn', 'Ts', 'Rn', 'Sn'])
 dates           = wth['date'].str.split('/', expand=True)
 times           = wth['time'].str.split(':', expand=True)
-wth['year']     = 2016
+wth['year']     = 2018
 wth['month']    = dates[0]
 wth['day']      = dates[1]
 wth['hour']     = times[0]
@@ -35,19 +35,18 @@ wth.index       = pd.to_datetime(wth[['year', 'month', 'day', 'hour', 'minute', 
 
 # ....Convert sea-level pressures to station pressure using:
 #         https://www.weather.gov/media/epz/wxcalc/stationPressure.pdf
-hm  = 117.         # Richland, WA: House 5
+#hm  = 117.         # Richland, WA: House 5
 #hm  = 716.9        # Pullman, WA: Houses 1, 2, 3, 4, 6, 7, 8
-#hm  = 601.1        # Colfax, WA: Houses 9, 10
-wth['Pb']  = wth['Pb'] * ( ( 288. - 0.0065*hm) / 288. ) ** 5.2561
+hm  = 601.1        # Colfax, WA: Houses 9, 10
+wth['Pb']  = wth['Pb'].astype('float') * ( ( 288. - 0.0065*hm) / 288. ) ** 5.2561
 # ....Calculate air density
-wth['density'] = wth['Pb'] / (287. * wth['Ta'])   # 287 is the gas constant for air in J/(kg K).
+wth['density'] = wth['Pb'] / (287. * wth['Ta'].astype('float'))   # 287 is the gas constant for air in J/(kg K).
  
 #............................ Contaminants ...................................
 # ....Read contaminant data
 #for d in ds:
-d  = ds[6]      # House 5
+d  = ds[16]      # House
 rack, pm25, ptrms = contam.readHouseContaminantData(d)
-#rack, pm25, ptrms = readHouseContaminantData(d)
 pm25 = pm25.drop(columns=['Unnamed: 2_level_0', 'Unnamed: 3_level_0', 'Unnamed: 4_level_0'])
 
 time_min = max([min(wth.index), min(rack.index), min(pm25.index), min(ptrms.index)])
