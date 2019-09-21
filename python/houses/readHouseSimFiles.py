@@ -31,7 +31,8 @@ houses = ['h002_summer',
           'h008_winter',
           'h009_summer',
           'h009_winter',
-          'h010_summer']
+          'h010_summer',
+          'h010_winter']
 years  = [2015,
           2016,
           2015,
@@ -47,7 +48,8 @@ years  = [2015,
           2018,
           2017,
           2018,
-          2017]
+          2017,
+          2018]
 node  = 'Cnd1'
 
 hdf = pd.HDFStore(d+'houses.hdf')
