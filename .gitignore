@@ -3,3 +3,4 @@
 # Ignore all files in graphics directory
 graphics/
 extractCMAQfile-checkpoint.ipynb
+python/houses/.ipynb_checkpoints/TestHomeSummary-checkpoint.ipynb
