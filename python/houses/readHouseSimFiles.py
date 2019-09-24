@@ -13,8 +13,12 @@ from socket import gethostname
 hostname = gethostname()
 if hostname.rfind('gaia')>=0:
     d = '/mnt/data/lima/iaq/houses/outdoors/'
-else:
+elif hostname.rfind('nuia')>=0:
     d = '/Users/vonw/data/iaq/houses/test_homes/'
+elif hostname.rfind('sila')>=0:
+    d = '/Users/vonw/data/iaq/houses/test_homes/'
+else:
+    d = 'D:\'
     
 houses = ['h002_summer',
           'h002_winter',
@@ -24,7 +28,7 @@ houses = ['h002_summer',
           'h004_winter',
           'h005_summer',
           'h006_summer',
-#          'h006_winter',
+          'h006_winter',
           'h007_summer',
           'h007_winter',
           'h008_summer',
@@ -41,7 +45,7 @@ years  = [2015,
           2017,
           2016,
           2016,
-#          2017,
+          2017,
           2016,
           2017,
           2018,
@@ -50,7 +54,23 @@ years  = [2015,
           2018,
           2017,
           2018]
-node  = 'Cnd1'
+node  = ['Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1',
+         'Cnd1']
 
 hdf = pd.HDFStore(d+'houses.hdf')
 
@@ -86,6 +106,7 @@ for house, year in zip(houses, years):
     ctm1 = ctm1 * 1e9 * (28.97/30.03)     # Convert to ppb
     ctm2 = ctm2 * 1e9 * (28.97/48.)       # Convert to ppb
     ctm3 = ctm3 * 1e9 * 1.25              # Convert to ug m-3
+    
     # Save data file.
     hdf.put(house+'/T', T)
     hdf.put(house+'/W', W)
