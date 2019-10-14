@@ -11,14 +11,14 @@ import contam_output
 from socket import gethostname
 
 hostname = gethostname()
-if hostname.rfind('gaia')>=0:
-    d = '/mnt/data/lima/iaq/houses/outdoors/'
+if hostname.rfind('petb227a')>=0:
+    d = '/mnt/data/lima/iaq/test_houses_no_opening/wth_ctm/'
 elif hostname.rfind('nuia')>=0:
-    d = '/Users/vonw/data/iaq/houses/test_homes/'
+    d = '/Users/vonw/data/iaq/test_houses_no_opening/wth_ctm/'
 elif hostname.rfind('sila')>=0:
-    d = '/Users/vonw/data/iaq/houses/test_homes/'
+    d = '/Users/vonw/data/iaq/test_houses_no_opening/wth_ctm/'
 else:
-    d = 'D:\'
+    d = 'D:/Documents/Lab/CONTAM_modeling/test_houses_no_opening/wth_ctm/'
     
 houses = ['h002_summer',
           'h002_winter',
@@ -54,7 +54,7 @@ years  = [2015,
           2018,
           2017,
           2018]
-node  = ['Cnd1',
+nodes = ['Cnd1',
          'Cnd1',
          'Cnd1',
          'Cnd1',
@@ -74,7 +74,7 @@ node  = ['Cnd1',
 
 hdf = pd.HDFStore(d+'houses.hdf')
 
-for house, year in zip(houses, years):
+for house, year, node in zip(houses, years, nodes):
     sim       = contam_output.Contam(d + house + '.sim')
     amb       = sim.readAmbient()
     amb.index = amb.index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
@@ -99,13 +99,16 @@ for house, year in zip(houses, years):
     ach  = achp.total
 
     # Unit conversions
+    # ....Contaminants are stored in alphabetical order by contam
     T = T-273.15  # convert to C
-    octm1 = oCtm1 * 1e9 * (28.97/30.03)   # Convert to ppb
-    octm2 = oCtm2 * 1e9 * (28.97/48.)     # Convert to ppb
-    octm3 = oCtm3 * 1e9 * 1.25            # Convert to ug m-3
-    ctm1 = ctm1 * 1e9 * (28.97/30.03)     # Convert to ppb
-    ctm2 = ctm2 * 1e9 * (28.97/48.)       # Convert to ppb
-    ctm3 = ctm3 * 1e9 * 1.25              # Convert to ug m-3
+    # Outside
+    octm1 = oCtm1 * 1e9 * (28.97/30.03)   # Convert to ppb; HCHO
+    octm2 = oCtm2 * 1e9 * (28.97/48.)     # Convert to ppb; O3
+    octm3 = oCtm3 * 1e9 * 1.25            # Convert to ug m-3; PM2.5
+    # Inside
+    ctm1 = ctm1 * 1e9 * (28.97/30.03)     # Convert to ppb; HCHO
+    ctm2 = ctm2 * 1e9 * (28.97/48.)       # Convert to ppb; O3
+    ctm3 = ctm3 * 1e9 * 1.25              # Convert to ug m-3; PM2.5
     
     # Save data file.
     hdf.put(house+'/T', T)
