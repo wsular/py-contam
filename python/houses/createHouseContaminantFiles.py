@@ -46,14 +46,14 @@ ds = [d.split('.')[0] + '/' for d in ds]
 
 #............................... Weather .....................................
 # ....Read weather data
-wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/H002_summer.wth', 
+wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/H004_summer.wth', 
                   sep='\t', 
-                  skiprows=32, 
+                  skiprows=17, 
                   header=None, 
                   names=['date', 'time', 'Ta', 'Pb', 'Ws', 'Wd', 'Hr', 'Ith', 'Idn', 'Ts', 'Rn', 'Sn'])
 dates           = wth['date'].str.split('/', expand=True)
 times           = wth['time'].str.split(':', expand=True)
-wth['year']     = 2015
+wth['year']     = 2016
 wth['month']    = dates[0]
 wth['day']      = dates[1]
 wth['hour']     = times[0]
