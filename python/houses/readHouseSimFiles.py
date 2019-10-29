@@ -37,6 +37,7 @@ houses = ['h002_summer',
           'h009_winter',
           'h010_summer',
           'h010_winter']
+elevations = [716.9, 716.9, 716.9, 716.9, 716.9, 716.9, 117.0, 716.9, 716.9, 716.9, 716.9, 716.9, 716.9, 601.1, 601.1, 601.1, 601.1]
 years  = [2015,
           2016,
           2015,
@@ -74,12 +75,13 @@ nodes = ['Cnd1',
 
 hdf = pd.HDFStore(d+'houses.hdf')
 
-for house, year, node in zip(houses, years, nodes):
+for house, year, node, elevation in zip(houses, years, nodes, elevations):
     sim       = contam_output.Contam(d + house + '.sim')
     amb       = sim.readAmbient()
     amb.index = amb.index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
     T  = amb.Tambt
-    W = amb.Ws
+    P  = amb.P.mean()   # Mean pressure during experiment
+    W  = amb.Ws
     oCtm1 = amb.Ctm1
     oCtm2 = amb.Ctm2
     oCtm3 = amb.Ctm3
@@ -102,13 +104,13 @@ for house, year, node in zip(houses, years, nodes):
     # ....Contaminants are stored in alphabetical order by contam
     T = T-273.15  # convert to C
     # Outside
-    octm1 = oCtm1 * 1e9 * (28.97/30.03)   # Convert to ppb; HCHO
-    octm2 = oCtm2 * 1e9 * (28.97/48.)     # Convert to ppb; O3
-    octm3 = oCtm3 * 1e9 * 1.25            # Convert to ug m-3; PM2.5
+    octm1 = oCtm1 * 1e9 * (28.97/30.03)     # Convert to ppb; HCHO
+    octm2 = oCtm2 * 1e9 * (28.97/48.)       # Convert to ppb; O3
+    octm3 = oCtm3 * 1e9 * 1.25              # Convert to ug m-3; PM2.5
     # Inside
-    ctm1 = ctm1 * 1e9 * (28.97/30.03)     # Convert to ppb; HCHO
-    ctm2 = ctm2 * 1e9 * (28.97/48.)       # Convert to ppb; O3
-    ctm3 = ctm3 * 1e9 * 1.25              # Convert to ug m-3; PM2.5
+    ctm1 = ctm1 * 1e9 * (28.97/30.03)       # Convert to ppb; HCHO
+    ctm2 = ctm2 * 1e9 * (28.97/48.)         # Convert to ppb; O3
+    ctm3 = ctm3 * 1e9 * 1.25 * (P/101325.)  # Convert to ug m-3; PM2.5
     
     # Save data file.
     hdf.put(house+'/T', T)
