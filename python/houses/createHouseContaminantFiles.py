@@ -11,49 +11,31 @@ import pandas as pd
 import contam_input as contam
 from glob import glob
 
+house = 'H002_summer'
+
 # ....Sets directories
 ds = glob('/Users/vonw/data/iaq/houses/outdoors/' + '*.xlsx')
 ds.sort()
 ds = [d.split('.')[0] + '/' for d in ds]
 
-#............................ Setup Information ..............................
-#  wth file   skiprows year    index
-# H002_summer    32    2015    0
-# H002_winter    24    2016    1
-# 
-# H003_summer    15    2015    2
-# H003_winter    13    2016    3
-# 
-# H004_summer    17    2016    4
-# H004_winter    14    2017    5
-# 
-# H005_summer    18    2016    6
-#
-# H006_summer    13    2016    7
-# H006_winter    14    2017    8
-# 
-# H007_summer    20    2016    9
-# H007_winter    14    2017    10
-# 
-# H008_summer    17    2018    11
-# H008_winter    21    2018    12
-# 
-# H009_summer    14    2017    13
-# H009_winter    14    2018    14
-# 
-# H010_summer    15    2017    15
-# H010_winter    16    2018    16
+houses     = ['H002_summer', 'H002_winter', 'H003_summer', 'H003_winter', 'H004_summer', 'H004_winter', 'H005_summer', 'H006_summer', 'H006_winter', 'H007_summer', 'H007_winter', 'H008_summer', 'H008_winter', 'H009_summer', 'H009_winter', 'H010_summer', 'H010_winter']
+years      = [2015, 2016, 2015, 2016, 2016, 2017, 2016, 2016, 2017, 2016, 2017, 2018, 2018, 2017, 2018, 2017, 2018]
+skiprows   = [32, 24, 15, 13, 17, 14, 18, 13, 14, 20, 14, 17, 21, 14, 14, 15, 16]
+elevations = [716.9, 716.9, 716.9, 716.9, 716.9, 716.9, 117.0, 716.9, 716.9, 716.9, 716.9, 716.9, 716.9, 601.1, 601.1, 601.1, 601.1]
+det_limit  = [  0.5,   0.5,   0.5,   0.5,   0.5,  0.5,   0.5,    0.5,   0.5,   0.5,   0.5,   0.5,   0.5,   0.5,   0.5,   0.5,   0.5]
+houseData  = pd.DataFrame({'house': houses, 'year': years, 'skiprows': skiprows, 'directory': ds, 'elevation': elevations})
+index      = houseData.loc[houseData.house==house].index[0]
 
 #............................... Weather .....................................
 # ....Read weather data
-wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/H004_summer.wth', 
+wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/' + house + '.wth', 
                   sep='\t', 
-                  skiprows=17, 
+                  skiprows=houseData.iloc[index].skiprows, 
                   header=None, 
                   names=['date', 'time', 'Ta', 'Pb', 'Ws', 'Wd', 'Hr', 'Ith', 'Idn', 'Ts', 'Rn', 'Sn'])
 dates           = wth['date'].str.split('/', expand=True)
 times           = wth['time'].str.split(':', expand=True)
-wth['year']     = 2016
+wth['year']     = houseData.iloc[index].year
 wth['month']    = dates[0]
 wth['day']      = dates[1]
 wth['hour']     = times[0]
@@ -65,7 +47,7 @@ wth.index       = pd.to_datetime(wth[['year', 'month', 'day', 'hour', 'minute', 
 #         https://www.weather.gov/media/epz/wxcalc/stationPressure.pdf
 #hm  = 117.         # Richland, WA: House 5
 #hm  = 716.9        # Pullman, WA: Houses 2, 3, 4, 6, 7, 8
-hm  = 601.1        # Colfax, WA: Houses 9, 10
+hm  = houseData.iloc[index].elevation
 wth['Pb']  = wth['Pb'].astype('float') * ( ( 288. - 0.0065*hm) / 288. ) ** 5.2561
 # ....Calculate air density
 wth['density'] = wth['Pb'] / (287. * wth['Ta'].astype('float'))   # 287 is the gas constant for air in J/(kg K).
