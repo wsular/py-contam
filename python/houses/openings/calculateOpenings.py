@@ -66,6 +66,7 @@ for house in houses.iterrows():
             opening = opening.replace('Kitchen','Kit')
             opening = opening.replace('Office','Off')
             opening = opening.replace('LivingRoom','Liv')
+            opening = opening.replace('DiningRoom','Din')
             data[opening] = df.resample('1S').ffill().resample('30min').mean()
         
         # ....Now add the data for all the temperature sensors
@@ -80,6 +81,7 @@ for house in houses.iterrows():
             sensorName = sensorName.replace('Kitchen','Kit')
             sensorName = sensorName.replace('Office','Off')
             sensorName = sensorName.replace('LivingRoom','Liv')
+            sensorName = sensorName.replace('DiningRoom','Din')
             data['T_' + sensorName.rstrip()] = (atmo[atmo.location == sensor].Temperature+273.15).resample('1S').ffill().resample('30min').mean()
         
         # ....Determine the time scale
