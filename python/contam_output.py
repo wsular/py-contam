@@ -17,7 +17,7 @@ class Contam:
         
         Example usage:
             # Initialize and read the "Ambient" meteorology and contaminant data.
-            import contam
+            import contam_output as contam
             filename = '/Users/vonw/data/iaq/contam/House_002_Test.sim'
             sim      = contam.Contam(filename)
             ambient  = sim.readAmbient()
