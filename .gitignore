@@ -20,3 +20,6 @@ python/houses/.ipynb_checkpoints/TestHomeSummary-checkpoint.ipynb
 .vscode/settings.json
 python/houses/.ipynb_checkpoints/createWeatherFiles-checkpoint.py
 python/houses/openings/.vscode/settings.json
+python/houses/.ipynb_checkpoints/readHouseContaminantFiles-checkpoint.py
+python/houses/.ipynb_checkpoints/createHouseContaminantFiles-checkpoint.py
+python/.ipynb_checkpoints/contam_input-checkpoint.py
