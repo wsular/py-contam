@@ -16,3 +16,6 @@ python/houses/.ipynb_checkpoints/TestHomeSummary-checkpoint.ipynb
 .spyproject/config/defaults/defaults-encoding-0.2.0.ini
 .spyproject/config/defaults/defaults-vcs-0.2.0.ini
 .spyproject/config/defaults/defaults-workspace-0.2.0.ini
+.ipynb_checkpoints/README-checkpoint.md
+.vscode/settings.json
+python/houses/.ipynb_checkpoints/createWeatherFiles-checkpoint.py
