@@ -12,7 +12,7 @@ import contam_input as contam
 from glob import glob
 
 # ....Sets directories
-ds = glob('/Users/vonw/data/iaq/houses/outdoors/' + '*.xlsx')
+ds = glob('/home/lima/data/iaq/houses/outdoors/' + '*.xlsx')
 ds.sort()
 ds = [d.split('.')[0] + '/' for d in ds]
 
@@ -29,7 +29,7 @@ for row in df.index:
     
     #............................... Weather .....................................
     # ....Read weather data
-    wth = pd.read_csv('/Users/vonw/data/iaq/houses/weatherFiles/' + 'H' + house.name[1:] + '.wth', 
+    wth = pd.read_csv('/home/lima/data/iaq/houses/weatherFiles/' + 'H' + house.name[1:] + '.wth', 
                       sep='\t', 
                       skiprows=house.skiprows, 
                       header=None, 
