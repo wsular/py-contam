@@ -11,8 +11,8 @@ import contam_output
 from socket import gethostname
 
 hostname = gethostname()
-if hostname.rfind('petb227a')>=0:
-    d = '/mnt/data/lima/iaq/test_houses_no_opening/wth_ctm/'
+if hostname.rfind('gaia')>=0:
+    d = '/home/lima/data/iaq/test_houses_no_opening/wth_ctm/'
 elif hostname.rfind('nuia')>=0:
     d = '/Users/vonw/data/iaq/test_houses_no_opening/wth_ctm/'
 elif hostname.rfind('sila')>=0:

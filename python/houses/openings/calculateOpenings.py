@@ -13,7 +13,7 @@ import numpy  as np
 from shutil import copyfile
 
 # ....Reads in the list of houses and sets the indices of valid houses to process.
-houses       = pd.read_csv('/Users/vonw/work/software/iaq/py-contam/python/houses/openings/houseDates.csv', parse_dates=['StartDate','EndDate'])
+houses       = pd.read_csv('/home/vonw/work/software/iaq/py-contam/python/houses/openings/houseDates.csv', parse_dates=['StartDate','EndDate'])
 validHouses  = [2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 validSensors = {'Atmo2S': ['RelayA', 'RelayC', 'RelayD', 'RelayB', 'MainDoor', 'DoorC', 'DoorD', 'DoorB', 'KitchenATemperature', 'KitchenAWindowA', 'DoorE', 'OfficeAWindowA', 'BedroomAWindowA', 'BathroomAWindowA', 'BathroomATemperature', 'BathroomBTemperature', 'DoorF', 'BedroomAWindowB'],
                 'Atmo2W': ['BedroomAWindowA', 'RelayC', 'BedroomAWindowB', 'BathroomAWindowA', 'BathroomATemperature', 'RelayE', 'RelayB', 'BathroomBTemperature', 'OfficeAWindowA', 'KitchenAWindowA', 'DoorF', 'DoorB', 'RelayD', 'DoorC', 'DoorE', 'MainDoor', 'KitchenATemperature', 'RelayA', 'DoorD'],
@@ -32,7 +32,7 @@ validSensors = {'Atmo2S': ['RelayA', 'RelayC', 'RelayD', 'RelayB', 'MainDoor', '
                 } 
 
 # ....Data directory
-d = '/Users/vonw/data/iaq/houses/SmartHome/YiBo_UTC_WD_CleanedJitter/'
+d = '/home/lima/data/iaq/houses/SmartHome/YiBo_UTC_WD_CleanedJitter/'
 
 # ....Process each valid house
 for house in houses.iterrows():
@@ -115,4 +115,4 @@ for house in houses.iterrows():
         f.close()
         
         # ....Make a copy of the file in a separate directory
-        copyfile(houseDir + 'SmartHomesData.cvf', '/Users/vonw/data/iaq/houses/SmartHome/CVF_files/' + houseDir.split('/')[-2] + '_SmartHomesData.cvf')
+        copyfile(houseDir + 'SmartHomesData.cvf', '/home/vonw/data/iaq/houses/SmartHome/CVF_files/' + houseDir.split('/')[-2] + '_SmartHomesData.cvf')
