@@ -23,3 +23,4 @@ python/houses/openings/.vscode/settings.json
 python/houses/.ipynb_checkpoints/readHouseContaminantFiles-checkpoint.py
 python/houses/.ipynb_checkpoints/createHouseContaminantFiles-checkpoint.py
 python/.ipynb_checkpoints/contam_input-checkpoint.py
+python/houses/openings/.ipynb_checkpoints/calculateOpenings-checkpoint.py
