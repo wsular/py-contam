@@ -10,6 +10,12 @@ import pandas as pd
 import contam_output
 from socket import gethostname
 
+def leap_year(year):
+    if (( year%400 == 0)or (( year%4 == 0 ) and ( year%100 != 0))):
+        return True
+    else:
+        return False
+
 hostname = gethostname()
 if hostname.rfind('gaia')>=0:
     d = '/home/lima/data/iaq/test_homes_modeling/no_opening/'
@@ -73,9 +79,14 @@ nodes = ['Cnd1',
          'Cnd1']
 
 for house, year, node in zip(houses, years, nodes):
+    # Determine time difference to add to time index to convert times to actual dates and times.
+    if leap_year(year) and ((amb.index[0]-pd.datetime(1900,1,1)).days >= 31+28):
+        tdiff = (pd.datetime(year,1,2) - pd.datetime(1900,1,1))    # Effectively add an extra day after leap day
+    else:
+        tdiff = (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
     sim       = contam_output.Contam(d + house + '.sim')
     amb       = sim.readAmbient()
-    amb.index = amb.index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
+    amb.index = amb.index + tdiff
     T  = amb.Tambt
     W = amb.Ws
     oCtm1 = amb.Ctm1
@@ -83,9 +94,9 @@ for house, year, node in zip(houses, years, nodes):
     oCtm3 = amb.Ctm3
     
     ctm       = sim.readContaminantNodes()
-    ctm['ctm1'].index = ctm['ctm1'].index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
-    ctm['ctm2'].index = ctm['ctm2'].index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
-    ctm['ctm3'].index = ctm['ctm3'].index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
+    ctm['ctm1'].index = ctm['ctm1'].index + tdiff
+    ctm['ctm2'].index = ctm['ctm2'].index + tdiff
+    ctm['ctm3'].index = ctm['ctm3'].index + tdiff
     ctm1  = ctm['ctm1'][node]
     ctm2  = ctm['ctm2'][node]
     ctm3  = ctm['ctm3'][node]
