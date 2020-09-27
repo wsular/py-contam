@@ -4,22 +4,24 @@ Created on Fri Dec 15 13:45:00 2018
 
 @author: Von P. Walden, Washington State University
 """
+#%%
 import contam_output
 import os
 import subprocess
 from shutil import copy2
-import numpy  as np
-import pandas as pd
+import cupy  as cp
+import cudf
 from glob import glob
+import pandas as pd
+import xarray as xr
 
+#%%
 ################################## USER INPUT ###############################
-
 # Select a directory for your CONTAM simulations
-output = 'VonTest'
+output = '2086-2095'
 
-# Indoor air temperature in F; '66', '70', or '74'
-#    Must be a string
-indoorAirTemp    = '70'
+# Indoor air temperature in F; 66, 70, or 74
+indoorAirTemp    = 70
 
 # Representative Concentration Pathway (RCP); 4.5 or 8.5
 #    Must be a floating-point number
@@ -32,20 +34,20 @@ rcps = (4.5, 8.5)
 #
 #    Note: if only one city is chosen, then make it a list (['Chicago']), not a string.
 #
-cities = (['Washington'])
+cities = ('Atlanta', 'Boston', 'Birmingham', 'Buffalo', 'Chicago', 'Cincinnati', 'CorpusChristi', 'Dallas', 'Denver', 'LosAngeles', 'Miami', 'Minneapolis', 'Nashville', 'NewYork', 'Phoenix', 'Seattle', 'St.Louis', 'Washington', 'Worcester')
 
 # House type; 'AH-1', DH-1', 'DH-3', 'House-5', 'MH-1'
 #
 #    Note: if only one house is chosen, then make it a list (['DH-1']), not a string.
 #
-houses = ('DH-1', 'DH-3', 'House-5')
-nodes  = ('Cnd8', 'Cnd5', 'Cnd6')         # Contaminant node in each house to examine; these get zipped together.
+houses = ('AH-1', 'DH-1', 'DH-3', 'House-5', 'MH-1')
+nodes  = ('Cnd8', 'Cnd8', 'Cnd5', 'Cnd6', 'Cnd5')         # Contaminant node in each house to examine; these get zipped together.
 
 # Simulation years from the following list:
 #    (2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 
 #     2047, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
 #     2090, 2091, 2092, 2093, 2094, 2095, 2096, 2097, 2098)
-years = (2010, 2011)
+years = (2086, 2087, 2088, 2089, 2090, 2091, 2092, 2093, 2094, 2095)
 
 # CMIP5 climate change models from the following list:
 #    'CCSM4', 'CNRM-CM5', 'GFDL-ESM2M', 'HadGEM2-ES365', 
@@ -56,6 +58,7 @@ years = (2010, 2011)
 models = ('CCSM4', 'CNRM-CM5', 'GFDL-ESM2M', 'HadGEM2-ES365', 'IPSL-CM5A-LR', 'MIROC5', 'MIROC-ESM')
 #############################################################################
 
+#%%
 # Create new directory or quit if it already exists! No way to write over data.
 outdir = '/mnt/data/lima/iaq/cmaq/prjFiles/' + output + '/'
 if not os.path.exists(outdir):
@@ -68,12 +71,13 @@ else:
 copy2('/mnt/data/lima/iaq/cmaq/runContam.py', outdir);
 
 # Sets directories that contain weather and contaminant files.
-wthdir = '/mnt/data/lima/iaq/contam/weatherFiles/'
-ctmdir = '/mnt/data/lima/iaq/contam/contaminantFiles/'
+wthdir = '/mnt/data/lima/iaq/contam_modeling/modeling_future_climate/weatherFiles/'
+ctmdir = '/mnt/data/lima/iaq/contam_modeling/modeling_future_climate/contaminantFiles/'
 
 #houses    = glob('/mnt/data/lima/iaq/home_models/' + str(indoorAirTemp) + 'findoortemp/*.prj')
 site_data = pd.read_csv('/mnt/data/lima/iaq/cmaq/sites.csv')
 
+#%%
 ############################ CREATE PRJ FILES ###############################
 def createContamPrjFile(outdir, city, year, rcp, model, house, indoorAirTemp):
     ### 
@@ -83,7 +87,7 @@ def createContamPrjFile(outdir, city, year, rcp, model, house, indoorAirTemp):
     #            15 Dec 2018
     ###
     # Read in contam project file template.
-    houseFile = '/mnt/data/lima/iaq/home_models/' + str(indoorAirTemp) + 'findoortemp/' + house + '.prj'
+    houseFile = '/mnt/data/lima/iaq/contam_modeling/modeling_future_climate/' + str(indoorAirTemp) + 'findoortemp/' + house + '.prj'
     lines   = open(houseFile, 'r').readlines()
     prjFile = list(lines)
     # Determine paths to weather and contaminant files
@@ -107,6 +111,7 @@ for city in cities:
                     createContamPrjFile(outdir, city_data, str(year), str(rcp), model, house, indoorAirTemp)
 #############################################################################
 
+#%%
 ############################# RUN PRJ FILES #################################
 os.chdir(outdir)
 prjFiles = glob(outdir+'*.prj')
@@ -118,23 +123,24 @@ for prjFile in prjFiles:
     result = subprocess.run(['/mnt/data/lima/contam/contam-x-3.2-gcc.exe',prjFile], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 #############################################################################
 
-############################ CREATE HDF SUMMARY FILE ########################
+#%%
+########################### CREATE netCDF SUMMARY FILE ########################
 def readAmbient(house, year, rcp, city):
     # Initialize dataframes.
-    T    = pd.DataFrame({})
-    ws   = pd.DataFrame({})
-    oCtm1 = pd.DataFrame({})
-    oCtm2 = pd.DataFrame({})
-    oCtm3 = pd.DataFrame({})
+    T     = cudf.DataFrame({})
+    ws    = cudf.DataFrame({})
+    oCtm1 = cudf.DataFrame({})
+    oCtm2 = cudf.DataFrame({})
+    oCtm3 = cudf.DataFrame({})
     # Loop over models.
     for model in models:
         fn  = house + '.prj' + str(year) + '_rcp' + str(rcp) + '_' + city + '.ctm' + city + '_' + str(year) + '_' + str(rcp) + '_' + model + '.wth.sim'
         #print(d + fn)   # for testing
-        sim       = contam_output.Contam(outdir + fn)
-        amb       = sim.readAmbient()
-        amb.index = amb.index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
-        T[model]  = amb.Tambt
-        ws[model] = amb.Ws
+        sim          = contam_output.Contam(outdir + fn)
+        amb          = sim.readAmbient()
+        amb.index    = amb.index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
+        T[model]     = amb.Tambt
+        ws[model]    = amb.Ws
         oCtm1[model] = amb.Ctm1
         oCtm2[model] = amb.Ctm2
         oCtm3[model] = amb.Ctm3
@@ -143,9 +149,9 @@ def readAmbient(house, year, rcp, city):
                         
 def readContaminants(house, year, rcp, city, node):
     # Initialize dataframes.
-    ctm1 = pd.DataFrame({})
-    ctm2 = pd.DataFrame({})
-    ctm3 = pd.DataFrame({})
+    ctm1 = cudf.DataFrame({})
+    ctm2 = cudf.DataFrame({})
+    ctm3 = cudf.DataFrame({})
     # Loop over models.
     for model in models:
         fn  = house + '.prj' + str(year) + '_rcp' + str(rcp) + '_' + city + '.ctm' + city + '_' + str(year) + '_' + str(rcp) + '_' + model + '.wth.sim'
@@ -162,7 +168,7 @@ def readContaminants(house, year, rcp, city, node):
 
 def readACH(house, year, rcp, city):
     # Initialize dataframes.
-    ach = pd.DataFrame({})
+    ach = cudf.DataFrame({})
     # Loop over models.
     for model in models:
         fn    = house + '.prj' + str(year) + '_rcp' + str(rcp) + '_' + city + '.ctm' + city + '_' + str(year) + '_' + str(rcp) + '_' + model + '.wth.ach'
@@ -174,39 +180,39 @@ def readACH(house, year, rcp, city):
 
     return ach
 
+first = True
 for rcp in rcps:
-    hdf = pd.HDFStore(outdir+output+'_rcp'+str(rcp)+'_'+indoorAirTemp+'F.hdf')
     for house, node in zip(houses, nodes):
         for city in cities:
             print('Processing: ', rcp, house, city)
             # Ambient meteorology and outside contaminants
-            T     = pd.DataFrame({})
-            W     = pd.DataFrame({})
-            octm1 = pd.DataFrame({})
-            octm2 = pd.DataFrame({})
-            octm3 = pd.DataFrame({})
+            T     = cudf.DataFrame({})
+            W     = cudf.DataFrame({})
+            octm1 = cudf.DataFrame({})
+            octm2 = cudf.DataFrame({})
+            octm3 = cudf.DataFrame({})
             # Contaminants
-            ctm1 = pd.DataFrame({})
-            ctm2 = pd.DataFrame({})
-            ctm3 = pd.DataFrame({})
+            ctm1 = cudf.DataFrame({})
+            ctm2 = cudf.DataFrame({})
+            ctm3 = cudf.DataFrame({})
             # ACH
-            ach  = pd.DataFrame({})
+            ach  = cudf.DataFrame({})
             for year in years:
                 # Ambient
                 Tp, Wp, O1p, O2p, O3p = readAmbient(house, year, rcp, city)
-                T      = pd.concat([T, Tp])
-                W      = pd.concat([W, Wp])
-                octm1  = pd.concat([octm1, O1p])
-                octm2  = pd.concat([octm2, O2p])
-                octm3  = pd.concat([octm3, O3p])
+                T      = cudf.concat([T, Tp])
+                W      = cudf.concat([W, Wp])
+                octm1  = cudf.concat([octm1, O1p])
+                octm2  = cudf.concat([octm2, O2p])
+                octm3  = cudf.concat([octm3, O3p])
                 # Contaminants
                 c1, c2, c3 = readContaminants(house, year, rcp, city, node)
-                ctm1 = pd.concat([ctm1, c1])
-                ctm2 = pd.concat([ctm2, c2])
-                ctm3 = pd.concat([ctm3, c3])
+                ctm1 = cudf.concat([ctm1, c1])
+                ctm2 = cudf.concat([ctm2, c2])
+                ctm3 = cudf.concat([ctm3, c3])
                 # ACH
                 a    = readACH(house, year, rcp, city)
-                ach  = pd.concat([ach, a])
+                ach  = cudf.concat([ach, a])
             # Unit conversions
             T = T-273.15  # convert to C
             octm1 = octm1 * 1e9 * (28.97/30.03)   # Convert to ppb
@@ -216,15 +222,42 @@ for rcp in rcps:
             ctm2 = ctm2 * 1e9 * (28.97/48.)       # Convert to ppb
             ctm3 = ctm3 * 1e9 * 1.25              # Convert to ug m-3
             # Save data file.
-            hdf.put(house+'/'+city+'/T', T)
-            hdf.put(house+'/'+city+'/W', W)
-            hdf.put(house+'/'+city+'/octm1', octm1)
-            hdf.put(house+'/'+city+'/octm2', octm2)
-            hdf.put(house+'/'+city+'/octm3', octm3)
-            hdf.put(house+'/'+city+'/ctm1', ctm1)
-            hdf.put(house+'/'+city+'/ctm2', ctm2)
-            hdf.put(house+'/'+city+'/ctm3', ctm3)
-            hdf.put(house+'/'+city+'/ach', ach)
+            if first:
+                times    = T.to_pandas().index
+                da_T     = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_W     = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_octm1 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_octm2 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_octm3 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_ctm1  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_ctm2  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_ctm3  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_ach   = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                first = False
+            for model in models:
+                da_T.loc[rcp, model, city, house]     = T[model].to_pandas().values
+                da_W.loc[rcp, model, city, house]     = W[model].to_pandas().values
+                da_octm1.loc[rcp, model, city, house] = octm1[model].to_pandas().values
+                da_octm2.loc[rcp, model, city, house] = octm2[model].to_pandas().values
+                da_octm3.loc[rcp, model, city, house] = octm3[model].to_pandas().values
+                da_ctm1.loc[rcp, model, city, house]  = octm1[model].to_pandas().values
+                da_ctm2.loc[rcp, model, city, house]  = ctm2[model].to_pandas().values
+                da_ctm3.loc[rcp, model, city, house]  = ctm3[model].to_pandas().values
+                da_ach.loc[rcp, model, city, house]   = ach[model].to_pandas().values
 
-    hdf.close()
+contam = xr.Dataset({'T': da_T, 
+                     'W': da_W,
+                     'octm1': da_octm1,
+                     'octm2': da_octm2,
+                     'octm3': da_octm3,
+                     'ctm1': da_ctm1,
+                     'ctm2': da_ctm2,
+                     'ctm3': da_ctm3,
+                     'ach': da_ach,
+                     'indoorAirTemperature': indoorAirTemp
+                    })
+
+contam.to_netcdf(outdir+output+'.nc')
 #############################################################################
+
+# %%
