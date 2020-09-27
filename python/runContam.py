@@ -18,7 +18,7 @@ import xarray as xr
 #%%
 ################################## USER INPUT ###############################
 # Select a directory for your CONTAM simulations
-output = '2086-2095'
+output = 'VonTest'
 
 # Indoor air temperature in F; 66, 70, or 74
 indoorAirTemp    = 70
