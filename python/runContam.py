@@ -47,7 +47,7 @@ nodes  = ('Cnd8', 'Cnd8', 'Cnd5', 'Cnd6', 'Cnd5')         # Contaminant node in 
 #    (2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 
 #     2047, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
 #     2090, 2091, 2092, 2093, 2094, 2095, 2096, 2097, 2098)
-years = (2086, 2087, 2088, 2089, 2090, 2091, 2092, 2093, 2094, 2095)
+years = (2086, 2087)
 
 # CMIP5 climate change models from the following list:
 #    'CCSM4', 'CNRM-CM5', 'GFDL-ESM2M', 'HadGEM2-ES365', 
@@ -224,15 +224,15 @@ for rcp in rcps:
             # Save data file.
             if first:
                 times    = T.to_pandas().index
-                da_T     = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_W     = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_octm1 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_octm2 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_octm3 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_ctm1  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_ctm2  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_ctm3  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
-                da_ach   = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times])
+                da_T     = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': '2-meter outside air temperature', 'units': 'deg C'})
+                da_W     = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': '10-meter outside wind speed', 'units': 'm s-1'})
+                da_octm1 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Outside concentration of formaldehyde (HCHO)', 'units': 'ppb'})
+                da_octm2 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Outside concentration of ozone (O3)', 'units': 'ppb'})
+                da_octm3 = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Outside concentration of particulate matter less than 2.5 microns (PM2.5)', 'units': 'micrograms m-3'})
+                da_ctm1  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Inside concentration of formaldehyde (HCHO)', 'units': 'ppb'})
+                da_ctm2  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Inside concentration of ozone (O3)', 'units': 'ppb'})
+                da_ctm3  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Inside concentration of particulate matter less than 2.5 microns (PM2.5)', 'units': 'micrograms m-3'})
+                da_ach   = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Air changes per hour', 'units': 'air changes hr-1'})
                 first = False
             for model in models:
                 da_T.loc[rcp, model, city, house]     = T[model].to_pandas().values
@@ -254,8 +254,10 @@ contam = xr.Dataset({'T': da_T,
                      'ctm2': da_ctm2,
                      'ctm3': da_ctm3,
                      'ach': da_ach,
-                     'indoorAirTemperature': indoorAirTemp
+                     'indoorAirTemperature': (indoorAirTemp-32)*(5/9)
                     })
+contam.indoorAirTemperature['long_name'] = 'Inside air temperature'
+contam.indoorAirTemperature['units'] = 'deg C'
 
 contam.to_netcdf(outdir+output+'.nc')
 #############################################################################
