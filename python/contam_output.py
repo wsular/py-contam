@@ -7,6 +7,7 @@ Created on Fri Oct  7 20:58:55 2016
          Washington State University
          Laboratory for Atmospheric Research
 """
+from   datetime import datetime
 import numpy     as    np
 import pandas   as     pd
 
@@ -87,8 +88,8 @@ class Contam:
                        'nafpt'         : np.fromfile(self.fp,'i4',1)[0]}
         
         # Determine time scale of contam simulation
-        self.header['beginning_time']    = pd.datetime.strptime(str(self.header['date_0']),'%j') + pd.to_timedelta(self.header['time_0'],'s')
-        self.header['ending_time']       = pd.datetime.strptime(str(self.header['date_1']),'%j') + pd.to_timedelta(self.header['time_1'],'s')
+        self.header['beginning_time']    = datetime.strptime(str(self.header['date_0']),'%j') + pd.to_timedelta(self.header['time_0'],'s')
+        self.header['ending_time']       = datetime.strptime(str(self.header['date_1']),'%j') + pd.to_timedelta(self.header['time_1'],'s')
         self.header['time_delta']        = pd.to_timedelta(self.header['time_list'],'s')
         self.header['numberOfTimeSteps'] = int((self.header['ending_time']-self.header['beginning_time']).total_seconds() / self.header['time_delta'].total_seconds()) 
         
