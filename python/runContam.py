@@ -12,6 +12,7 @@ from shutil import copy2
 import cupy  as cp
 import cudf
 from glob import glob
+from datetime import datetime
 import pandas as pd
 import xarray as xr
 
@@ -138,7 +139,7 @@ def readAmbient(house, year, rcp, city):
         #print(d + fn)   # for testing
         sim          = contam_output.Contam(outdir + fn)
         amb          = sim.readAmbient()
-        amb.index    = amb.index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
+        amb.index    = amb.index + (datetime(year,1,1) - datetime(1900,1,1))
         T[model]     = amb.Tambt
         ws[model]    = amb.Ws
         oCtm1[model] = amb.Ctm1
@@ -157,9 +158,9 @@ def readContaminants(house, year, rcp, city, node):
         fn  = house + '.prj' + str(year) + '_rcp' + str(rcp) + '_' + city + '.ctm' + city + '_' + str(year) + '_' + str(rcp) + '_' + model + '.wth.sim'
         sim       = contam_output.Contam(outdir + fn)
         ctm       = sim.readContaminantNodes()
-        ctm['ctm1'].index = ctm['ctm1'].index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
-        ctm['ctm2'].index = ctm['ctm2'].index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
-        ctm['ctm3'].index = ctm['ctm3'].index + (pd.datetime(year,1,1) - pd.datetime(1900,1,1))
+        ctm['ctm1'].index = ctm['ctm1'].index + (datetime(year,1,1) - datetime(1900,1,1))
+        ctm['ctm2'].index = ctm['ctm2'].index + (datetime(year,1,1) - datetime(1900,1,1))
+        ctm['ctm3'].index = ctm['ctm3'].index + (datetime(year,1,1) - datetime(1900,1,1))
         ctm1[model]  = ctm['ctm1'][node]
         ctm2[model]  = ctm['ctm2'][node]
         ctm3[model]  = ctm['ctm3'][node]
@@ -173,7 +174,7 @@ def readACH(house, year, rcp, city):
     for model in models:
         fn    = house + '.prj' + str(year) + '_rcp' + str(rcp) + '_' + city + '.ctm' + city + '_' + str(year) + '_' + str(rcp) + '_' + model + '.wth.ach'
         achp  = pd.read_csv(outdir + fn, sep='\t', skiprows=1)
-        dates = [pd.datetime(year,int(m),int(d)) for m,d in [date.split('/') for date in achp.day]]
+        dates = [datetime(year,int(m),int(d)) for m,d in [date.split('/') for date in achp.day]]
         hours = [int(hr[0:2]) for hr in achp.time]
         achp.index = [date + pd.to_timedelta(hour, 'h') for date, hour in zip(dates,hours)]
         ach[model]  = achp.total
