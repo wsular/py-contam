@@ -60,7 +60,7 @@ def read_datafile(gridFile, dataFile, lat, lon, vrs, eqs, wthFlag):
         
         #print(eq)
         if(eq[-1] == 'S'):
-            if(int(datestr[0:4])<2005):
+            if(int(datestr[0:4])<=2005):
                 air = DATA['DENS'].values[:,0,ilat,ilon]
             else:
                 air = DATA['AIR_DENS'].values[:,0,ilat,ilon]
