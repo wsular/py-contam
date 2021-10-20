@@ -19,7 +19,7 @@ import xarray as xr
 #%%
 ################################## USER INPUT ###############################
 # Select a directory for your CONTAM simulations
-output = 'VonTest'
+output = '1996-2005'
 
 # Indoor air temperature in F; 66, 70, or 74
 indoorAirTemp    = 70
@@ -45,10 +45,9 @@ houses = ('AH-1', 'DH-1', 'DH-3', 'House-5', 'MH-1')
 nodes  = ('Cnd8', 'Cnd8', 'Cnd5', 'Cnd6', 'Cnd5')         # Contaminant node in each house to examine; these get zipped together.
 
 # Simulation years from the following list:
-#    (2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 
-#     2047, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-#     2090, 2091, 2092, 2093, 2094, 2095, 2096, 2097, 2098)
-years = (2086, 2087)
+years = (1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005)
+#years = (2046, 2047, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055)
+#years = (2086, 2087, 2088, 2089, 2090, 2091, 2092, 2093, 2094, 2095)
 
 # CMIP5 climate change models from the following list:
 #    'CCSM4', 'CNRM-CM5', 'GFDL-ESM2M', 'HadGEM2-ES365', 
