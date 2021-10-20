@@ -5,13 +5,13 @@ Created on Sun Feb 24 13:21:58 2019
 
 @author: Von P. Walden, Laboratory for Atmospheric Research, Washington State University
 """
-
+#%%
 import xarray as xr
 import pandas as pd
 import numpy as np
 from   datetime import datetime, timedelta
 
-
+#%%
 ##############################################################################
 def find_WRF_pixel(latvar,lonvar,lat0,lon0):
     # Read latitude and longitude from file into numpy arrays
@@ -60,7 +60,10 @@ def read_datafile(gridFile, dataFile, lat, lon, vrs, eqs, wthFlag):
         
         #print(eq)
         if(eq[-1] == 'S'):
-            air = DATA['AIR_DENS'].values[:,0,ilat,ilon]
+            if(int(datestr[0:4])<2005):
+                air = DATA['DENS'].values[:,0,ilat,ilon]
+            else:
+                air = DATA['AIR_DENS'].values[:,0,ilat,ilon]
             dat = dat/1000000000/air
             #dat.apply(lambda x: x/1000000000/AIR_DENS)
         else:
@@ -132,34 +135,36 @@ def writeContamSpeciesFile(specFile, df):
     
     return
 
+#%%
 ##############################################################################
 # Main program
-extr_dir1   = '/Volumes/vonw/cmaq/DOE_20years/36km/'
-output_dir  = '/Users/vonw/data/iaq/cmaq/output/'
+extr_dir1   = '/mnt/data/lima/iaq/cmaq/extr/current/'
+output_dir  = '/mnt/data/lima/iaq/contam_modeling/modeling_future_climate/contaminantFiles/'
 
-variables   = pd.read_csv('/Users/vonw/work/software/iaq/py-contam/python/vrs.csv')
-sites       = pd.read_csv('/Users/vonw/work/software/iaq/py-contam/python/iaq_cities.csv')
+variables   = pd.read_csv('/home/vonw/work/software/iaq/py-contam/python/vrs.csv')
+sites       = pd.read_csv('/home/vonw/work/software/iaq/py-contam/python/iaq_cities.csv')
 
-years  = [2095]
+#%%
+years  = [1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005]
 months = range(1,13)
 rcps   = ['RCP4.5', 'RCP8.5']
 for row, site in sites.iterrows():
 #    if(site.city != 'Chicago'): break    # !! For testing only !!
     for rcp in rcps:
-        extr_dir2   = '/Volumes/sdata/cmaq/cmaq5.2/' + rcp.lower() + '/extr/'
         for year in years:
+            extr_dir2   = '/mnt/data/lima/iaq/cmaq/extr/' + rcp.lower() + '/' + str(year) + '/'
             # Initialize DataFrames
             ctm    = pd.DataFrame({})
             wth    = pd.DataFrame({})
             for month in months:
                 if ( (year>=1996) & (year<=2005)):
-                    gridFile   = '/Volumes/sdata/cmaq/GRIDCRO2D_2086-2095'
+                    gridFile   = '/mnt/data/lima/iaq/cmaq/GRIDCRO2D_2086-2095'    # Not sure why we're using this file for 1996-2005(?), vpw 20211019
                     dataFile = extr_dir1 + str(year) + '/CCTM_DOE_36km_SF_RERUN_combine.aconc.' + str(year) + str(month).zfill(2)
                 elif( (year>=2046) & (year<=2055)):
-                    gridFile   = '/Volumes/sdata/cmaq/GRIDCRO2D_2046-2055'
+                    gridFile   = '/mnt/data/lima/iaq/cmaq/GRIDCRO2D_2046-2055'
                     dataFile = extr_dir2 + '2040ei_v6_cb05v2_ref_' + rcp + '.combine.aconc.' + str(year) + '.' + str(month).zfill(2)
                 elif( (year>=2086) & (year<=2095)):
-                    gridFile   = '/Volumes/sdata/cmaq/GRIDCRO2D_2086-2095'
+                    gridFile   = '/mnt/data/lima/iaq/cmaq/GRIDCRO2D_2086-2095'
                     dataFile = extr_dir2 + '2040ei_v6_cb05v2_ref_' + rcp + '.combine.aconc.' + str(year) + '.' + str(month).zfill(2)
                 
                 # Read data from the WRF-CMAQ file.
@@ -175,3 +180,5 @@ for row, site in sites.iterrows():
             
             # Create ctm file.
             writeContamSpeciesFile(output_dir + str(year) + '_' + rcp.lower() + '_' + site.city + '.ctm', ctm)
+
+#%%
