@@ -233,7 +233,7 @@ for rcp in rcps:
                 da_ctm1  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Inside concentration of formaldehyde (HCHO)', 'units': 'ppb'})
                 da_ctm2  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Inside concentration of ozone (O3)', 'units': 'ppb'})
                 da_ctm3  = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Inside concentration of particulate matter less than 2.5 microns (PM2.5)', 'units': 'micrograms m-3'})
-                da_ach   = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Air changes per hour', 'units': 'air changes hr-1'})
+                da_ach   = xr.DataArray(cp.asnumpy(cp.ones((len(rcps),len(models),len(cities),len(houses),len(times)))*cp.nan), dims=['rcp', 'model', 'city', 'house', 'time'], coords=[list(rcps), list(models), list(cities), list(houses), times], attrs={'long_name': 'Whole building air change rate', 'units': 'hr-1'})
                 first = False
             for model in models:
                 da_T.loc[rcp, model, city, house]     = T[model].to_pandas().values
@@ -257,8 +257,7 @@ contam = xr.Dataset({'T': da_T,
                      'ach': da_ach,
                      'indoorAirTemperature': (indoorAirTemp-32)*(5/9)
                     })
-contam.indoorAirTemperature['long_name'] = 'Inside air temperature'
-contam.indoorAirTemperature['units'] = 'deg C'
+data.indoorAirTemperature.attrs = {'long_name': 'Inside air temperature', 'units': 'deg C'}
 
 contam.to_netcdf(outdir+output+'.nc')
 #############################################################################
