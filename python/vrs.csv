@@ -1,4 +1,4 @@
 Name,Definition,Phase,Molecular Weight,Location,File Units,Convert units,Needed units
 FORM,Formaldehyde,Gas,30,Out,ppmV,x/1000000*30/28.97,kg/kg
 O3,Ozone,Gas,48,Extr,ppbV,x/1000000000*48/28.97,kg/kg
-PM10_TOT,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
+PM25_TOT,,Particulate,,Extr,ug/m3,x/1000000000/AIR_DENS,kg/kg
